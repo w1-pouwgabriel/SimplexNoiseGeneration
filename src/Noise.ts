@@ -27,6 +27,10 @@ export default class NoiseGenerator {
         return this._noise;
     }
 
+    public set parms(params: NoiseParams) {
+        this._params = params;
+    }
+
     constructor(params : NoiseParams) {
       this._params = params;
       this._noise = {
@@ -36,7 +40,7 @@ export default class NoiseGenerator {
       };
     }
 
-    Get(x: number, y: number) {
+    public Get(x: number, y: number) {
         const xs = x / this._params.scale;
         const ys = y / this._params.scale;
         let noiseFunc;
