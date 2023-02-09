@@ -24,7 +24,7 @@ export default class Graphics{
         this._renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this._renderer.domElement);
   
-        window.addEventListener('resize', this.OnWindowResize);
+        window.addEventListener('resize', () => {this.OnWindowResize()}, false);
 
         this._windowSize = new Vector2(window.innerWidth, window.innerHeight);
   
@@ -33,16 +33,16 @@ export default class Graphics{
         const near = 0.1;
         const far = 10000.0;
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this._camera.position.set(50, 35, 50);
+        this._camera.position.set(75, 75, 50);
         this._camera.lookAt(0,0,0);
 
         this._sceneRef = sceneRef;
     }
 
-    private OnWindowResize(){
+    private async OnWindowResize(){
         this._windowSize = new Vector2(window.innerWidth, window.innerHeight);
-
-        this._renderer.setSize(this._windowSize.x, this._windowSize.y);
+    
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     public Render(){

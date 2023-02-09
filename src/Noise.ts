@@ -9,13 +9,13 @@ interface Noise{
 }
 
 export class NoiseParams{
-    public scale: number = 1;
+    public scale: number = 256;
     public noiseType: string = "simplex";
-    public persistence: number = 1;
-    public octaves: number = 1;
-    public lacunarity: number = 1; 
-    public exponentiation: number = 1; 
-    public height: number = 1;
+    public persistence: number = 10;
+    public octaves: number = 0.5;
+    public lacunarity: number = 2; 
+    public exponentiation: number = 4; 
+    public height: number = 64;
     public seed: any = Math.random();
 }
 
@@ -62,12 +62,17 @@ export default class NoiseGenerator {
           const noiseValue = noiseFunc.noise2D(
               xs * frequency, ys * frequency) * 0.5 + 0.5;
           total += noiseValue * amplitude;
+
           normalization += amplitude;
           amplitude *= G;
           frequency *= this._params.lacunarity;
+
+          console.log("Amplitude: ", amplitude);
+          console.log("Frequency: ", frequency);
+
         }
         total /= normalization;
-        return Math.pow(
+        return -Math.pow(
             total, this._params.exponentiation) * this._params.height;
       }
 }

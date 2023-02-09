@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Clock, Mesh } from "three";
+import { Clock } from "three";
 
 import Graphics from "./Graphics";
 import World from "./World";
@@ -25,7 +25,7 @@ export default class Game {
     public Render(){
         let deltaTime: any = this._timer.getDelta();
 
-        this._World.updateEntities();
+        this._World.updateEntities(deltaTime);
         this._Graphics.Render();
         requestAnimationFrame(this.Render.bind(this));
     }
