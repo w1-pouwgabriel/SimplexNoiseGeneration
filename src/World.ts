@@ -1,14 +1,20 @@
 import * as THREE from "three";
 import { Mesh, Vector3 } from "three";
-import { math } from "./Math";
 import NoiseGenerator, { NoiseParams } from "./Noise"
-import Vector from "ts-vector"
+import TerrianTypes from "./TerrianTypes";
 import { degToRad } from "./Utisl";
+
+interface TerrianType {
+    name: string,
+    height: number,
+    color: number
+};
 
 export default class World{
     private _scene: THREE.Scene;
     private _chunk: THREE.Mesh = new Mesh();
     private _noise?: NoiseGenerator;
+    private _terrianTypes: TerrianType[];
 
     public get scene(){
         return this._scene;
@@ -29,25 +35,40 @@ export default class World{
         noiseParams.noiseType = "simplex";  //What type of noise
         noiseParams.persistence = 3;        //Controls the amplitude of octaves
         noiseParams.octaves = 3;            //The amount of noise maps used
-        noiseParams.lacunarity = 5;         //Controls frequency of octaves
-        noiseParams.exponentiation = 4;     //???
-        noiseParams.height = 35;            //Max height of the heightmap
+        noiseParams.lacunarity = 3;         //Controls frequency of octaves
+        noiseParams.exponentiation = 1;     //???
+        noiseParams.height = 3;            //The height of the heightmap
         noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
 
+        //Create some terriantypes
+        this._terrianTypes = new Array; 
+        this._terrianTypes.push(
+            { name: "Water", height: -1, color: 0xFF0000},
+            { name: "Land", height: 0, color: 0x0000FF}
+        );
+        console.log(this._terrianTypes)
+
+        let normalMaterial = new THREE.MeshNormalMaterial({
+            wireframe: false,
+            side: THREE.DoubleSide
+        });
+        let basicMaterial = new THREE.MeshBasicMaterial({
+            wireframe: false,
+            color: 0x80808080,
+            side: THREE.DoubleSide
+        });
+
         let resolution = 55;
         let chunkSize = 100;
-
         this._chunk = new THREE.Mesh(
             new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
-            new THREE.MeshNormalMaterial({
-                wireframe: false,
-                side: THREE.DoubleSide
-            }));
+            normalMaterial
+            );
         this._chunk.castShadow = false;
         this._chunk.receiveShadow = true;
-
+        
         this.ApplyHeightMap();
         
         this._scene.add( this._chunk );
@@ -66,10 +87,10 @@ export default class World{
 
     private Lighthing(){
         let light = new THREE.DirectionalLight(0x808080, 1);
-        light.position.set(0, 0, 0);
+        light.position.set(0, -30, 150);
         light.target.position.set(0, 0, 0);
-        light.castShadow = false;
-        light.intensity = 0.0;
+        //light.castShadow = false;
+
         this._scene.add(light);
     }
 

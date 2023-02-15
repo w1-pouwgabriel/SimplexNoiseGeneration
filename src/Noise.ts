@@ -56,6 +56,7 @@ export default class NoiseGenerator {
 
         let amplitude = 1.0;
         let frequency = 1.0;
+        let normalization = 0;
         let total = 0;
 
         for (let o = 0; o < this._params.octaves; o++) {
@@ -63,14 +64,15 @@ export default class NoiseGenerator {
             const xs = x / this._params.scale * frequency;
             const ys = y / this._params.scale * frequency;
 
-            const noiseValue = noiseFunc.noise2D(xs , ys);
+            const noiseValue = noiseFunc.noise2D(xs , ys) * 2 - 1;
             total += noiseValue * amplitude;
-
+            
+            normalization += amplitude;
             amplitude *= this._params.persistence;
             frequency *= this._params.lacunarity;
         }
 
-        return total / this._params.octaves;
+        return total / this._params.octaves * this._params.height;
       }
 
     // public Get(x: number, y: number) : number {
