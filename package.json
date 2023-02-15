@@ -1,18 +1,1 @@
-{
-  
-  "scripts": {
-    "dev": "esbuild src/index.ts --bundle --watch --minify --sourcemap --outdir=dist/js --target=es2020"
-  },
-  "devDependencies": {
-    "@types/node": "^13.13.15",
-    "@types/three": "^0.149.0"
-  },
-  "dependencies": {
-    "three": "^0.149.0",
-    "alea": "^1.0.1",
-    "clock": "^1.0.2",
-    "esbuild": "^0.17.5",
-    "simplex-noise": "^2.4.0",
-    "typescript": "^4.9.5"
-  }
-}
+{"scripts":{"dev":"esbuild src/index.ts --bundle --watch --minify --sourcemap --outdir=dist/js --target=es2020"},"devDependencies":{"@types/node":"^13.13.15","@types/three":"^0.149.0"},"dependencies":{"alea":"^1.0.1","clock":"^1.0.2","esbuild":"^0.17.5","simplex-noise":"^2.4.0","three":"^0.149.0","ts-vector":"^0.1.0","typescript":"^4.9.5"}}

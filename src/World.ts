@@ -1,7 +1,9 @@
 import * as THREE from "three";
-import { Mesh } from "three";
-import { degToRad } from "./Utisl";
+import { Mesh, Vector3 } from "three";
+import { math } from "./Math";
 import NoiseGenerator, { NoiseParams } from "./Noise"
+import Vector from "ts-vector"
+import { degToRad } from "./Utisl";
 
 export default class World{
     private _scene: THREE.Scene;
@@ -21,57 +23,53 @@ export default class World{
 
         this.Lighthing();
 
-        let resolution = 50;
+        //Noise generator
+        let noiseParams: NoiseParams = new NoiseParams();
+        noiseParams.scale = 256;            //At what scale do you want to generate noise
+        noiseParams.noiseType = "simplex";  //What type of noise
+        noiseParams.persistence = 3;        //Controls the amplitude of octaves
+        noiseParams.octaves = 3;            //The amount of noise maps used
+        noiseParams.lacunarity = 5;         //Controls frequency of octaves
+        noiseParams.exponentiation = 4;     //???
+        noiseParams.height = 35;            //Max height of the heightmap
+        noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
+
+        this._noise = new NoiseGenerator(noiseParams);
+
+        let resolution = 55;
+        let chunkSize = 100;
 
         this._chunk = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 100, resolution, resolution),
-            new THREE.MeshStandardMaterial({
-                wireframe: true,
-                color: 0xFFFFFF,
+            new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
+            new THREE.MeshNormalMaterial({
+                wireframe: false,
                 side: THREE.DoubleSide
             }));
         this._chunk.castShadow = false;
         this._chunk.receiveShadow = true;
-        
-        this._chunk.rotation.x = degToRad(90);
-        this._chunk.rotation.z = degToRad(45);
-
-        this._scene.add( this._chunk );
-
-        //Noise generator
-        let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = resolution;
-        noiseParams.noiseType = "simplex";
-        noiseParams.persistence = 10;
-        noiseParams.octaves = 0.5;
-        noiseParams.lacunarity = 2; 
-        noiseParams.exponentiation = 4; 
-        noiseParams.height = 25;
-        noiseParams.seed = Math.random();
-
-        this._noise = new NoiseGenerator(noiseParams);
 
         this.ApplyHeightMap();
+        
+        this._scene.add( this._chunk );
     }
 
     private ApplyHeightMap(){
         let vertices = this._chunk.geometry.attributes.position["array"];
+
         for(let i = 0; i < vertices.length; i += 3){
-            vertices[i + 2] = this._noise.Get(vertices[i], vertices[i + 1]);
+            vertices[i + 2] = this._noise.Get(vertices[i] + this._chunk.position.x, vertices[i + 1] + this._chunk.position.z);
         }
+        
+        //Recalculate the normals
+        this._chunk.geometry.computeVertexNormals();
     }
 
     private Lighthing(){
         let light = new THREE.DirectionalLight(0x808080, 1);
-        light.position.set(-100, 100, -100);
+        light.position.set(0, 0, 0);
         light.target.position.set(0, 0, 0);
         light.castShadow = false;
-        this._scene.add(light);
-  
-        light = new THREE.DirectionalLight(0x404040, 1);
-        light.position.set(100, 100, -100);
-        light.target.position.set(0, 0, 0);
-        light.castShadow = false;
+        light.intensity = 0.0;
         this._scene.add(light);
     }
 

@@ -30,10 +30,6 @@ export const math = (function() {
       clamp: function(x: number, a: number, b: number) {
         return Math.min(Math.max(x, a), b);
       },
-  
-      sat: function(x: number) {
-        return Math.min(Math.max(x, 0.0), 1.0);
-      },
     };
   })();
   

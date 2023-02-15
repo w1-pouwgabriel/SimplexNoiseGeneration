@@ -1,6 +1,5 @@
 import SimplexNoise from "simplex-noise";
 import alea from "alea";
-//import math from "./Math"
 
 interface Noise{
     perlin: PerlinNoise,
@@ -9,14 +8,14 @@ interface Noise{
 }
 
 export class NoiseParams{
-    public scale: number = 256;
-    public noiseType: string = "simplex";
-    public persistence: number = 10;
-    public octaves: number = 0.5;
-    public lacunarity: number = 2; 
-    public exponentiation: number = 4; 
-    public height: number = 64;
-    public seed: any = Math.random();
+    public scale: number = 256;             //At what scale do you want to generate noise
+    public noiseType: string = "simplex";   //What type of noise
+    public persistence: number = 10;        //Controls the amplitude of octaves
+    public octaves: number = 0.5;           //The amount of noise maps used
+    public lacunarity: number = 2;          //Controls frequency of octaves
+    public exponentiation: number = 4;      //???
+    public height: number = 64;             //Max height of the heightmap
+    public seed: any = Math.random();       //Generate a random seed
 }
 
 export default class NoiseGenerator {
@@ -32,17 +31,18 @@ export default class NoiseGenerator {
     }
 
     constructor(params : NoiseParams) {
-      this._params = params;
-      this._noise = {
-        simplex: new SimplexNoise(alea(this._params.seed)),
-        perlin: new PerlinNoise(this._params),
-        random: new RandomNoise(this._params)
-      };
+        if(params.scale == 0.0){
+            params.scale = 0.001;
+        }
+        this._params = params;
+        this._noise = {
+            simplex: new SimplexNoise(alea(this._params.seed)),
+            perlin: new PerlinNoise(this._params),
+            random: new RandomNoise(this._params)
+        };
     }
 
-    public Get(x: number, y: number) {
-        const xs = x / this._params.scale;
-        const ys = y / this._params.scale;
+    public Get(x: number, y: number) : number {
         let noiseFunc;
         if(this._params.noiseType == "simplex"){
             noiseFunc = this._noise["simplex"];
@@ -53,28 +53,58 @@ export default class NoiseGenerator {
         else{
             noiseFunc = this._noise["random"];
         }
-        const G = 2.0 ** (-this._params.persistence);
+
         let amplitude = 1.0;
         let frequency = 1.0;
-        let normalization = 0;
         let total = 0;
+
         for (let o = 0; o < this._params.octaves; o++) {
-          const noiseValue = noiseFunc.noise2D(
-              xs * frequency, ys * frequency) * 0.5 + 0.5;
-          total += noiseValue * amplitude;
+            //Sample coordinates
+            const xs = x / this._params.scale * frequency;
+            const ys = y / this._params.scale * frequency;
 
-          normalization += amplitude;
-          amplitude *= G;
-          frequency *= this._params.lacunarity;
+            const noiseValue = noiseFunc.noise2D(xs , ys);
+            total += noiseValue * amplitude;
 
-          console.log("Amplitude: ", amplitude);
-          console.log("Frequency: ", frequency);
-
+            amplitude *= this._params.persistence;
+            frequency *= this._params.lacunarity;
         }
-        total /= normalization;
-        return -Math.pow(
-            total, this._params.exponentiation) * this._params.height;
+
+        return total / this._params.octaves;
       }
+
+    // public Get(x: number, y: number) : number {
+    //     const xs = x / this._params.scale;
+    //     const ys = y / this._params.scale;
+    //     let noiseFunc;
+    //     if(this._params.noiseType == "simplex"){
+    //         noiseFunc = this._noise["simplex"];
+    //     }
+    //     else if(this._params.noiseType == "perlin"){
+    //         noiseFunc = this._noise["perlin"];
+    //     }
+    //     else{
+    //         noiseFunc = this._noise["random"];
+    //     }
+    //     const G = 2.0 ** (-this._params.persistence);
+    //     let amplitude = 1.0;
+    //     let frequency = 1.0;
+    //     let normalization = 0;
+    //     let total = 0;
+    //     for (let o = 0; o < this._params.octaves; o++) {
+    //       const noiseValue = noiseFunc.noise2D(
+    //           xs * frequency, ys * frequency) * 0.5 + 0.5;
+    //       total += noiseValue * amplitude;
+
+    //       normalization += amplitude;
+    //       amplitude *= G;
+    //       frequency *= this._params.lacunarity;
+    //     }
+    //     total /= normalization;
+
+    //     return Math.pow(
+    //         total, this._params.exponentiation) * this._params.height;
+    //   }
 }
 
 
