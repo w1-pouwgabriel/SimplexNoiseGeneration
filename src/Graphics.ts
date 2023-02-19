@@ -1,10 +1,12 @@
 import * as THREE from "three";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Vec2, Vector2 } from "three";
 
 export default class Graphics{
     private _camera: THREE.Camera;
     private _renderer: THREE.WebGLRenderer;
     private _sceneRef: THREE.Scene;
+    private _controls: OrbitControls;
 
     private _windowSize: Vec2;
 
@@ -33,8 +35,11 @@ export default class Graphics{
         const near = 0.1;
         const far = 1000.0;
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this._camera.position.set(0, -75, 75);
+        this._camera.position.set(0, 300, 250);
         this._camera.lookAt(0,0,0);
+
+        this._controls = new OrbitControls(this._camera, this._renderer.domElement);
+        this._controls.update();
 
         this._sceneRef = sceneRef;
     }
@@ -46,6 +51,7 @@ export default class Graphics{
     }
 
     public Render(){
+        this._controls.update();
         this._renderer.render(this._sceneRef, this._camera);
     }
 

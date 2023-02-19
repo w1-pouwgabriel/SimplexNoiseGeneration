@@ -21,6 +21,8 @@ export class NoiseParams{
 export default class NoiseGenerator {
     private _params: NoiseParams;
     private _noise: Noise;
+    private _maxHeight: number;
+    private _minHeight: number;
 
     public get noice() : Noise{
         return this._noise;
@@ -40,6 +42,8 @@ export default class NoiseGenerator {
             perlin: new PerlinNoise(this._params),
             random: new RandomNoise(this._params)
         };
+        this._maxHeight = 1;
+        this._minHeight = 1;
     }
 
     public Get(x: number, y: number) : number {
@@ -64,15 +68,16 @@ export default class NoiseGenerator {
             const xs = x / this._params.scale * frequency;
             const ys = y / this._params.scale * frequency;
 
-            const noiseValue = noiseFunc.noise2D(xs , ys) * 2 - 1;
+            const noiseValue = noiseFunc.noise2D(xs , ys);
             total += noiseValue * amplitude;
             
             normalization += amplitude;
             amplitude *= this._params.persistence;
             frequency *= this._params.lacunarity;
         }
-
-        return total / this._params.octaves * this._params.height;
+        total /= normalization;
+        
+        return Math.pow(total, this._params.exponentiation);
       }
 
     // public Get(x: number, y: number) : number {

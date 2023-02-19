@@ -39,3 +39,7 @@ export function clamp(x: number, a: number, b: number): number {
   export function sat(x: number): number {
     return Math.min(Math.max(x, 0.0), 1.0);
   };
+
+  export function reverseNumberInRange(num: number, min: number, max: number) : number{
+    return (max + min) - num;
+  }

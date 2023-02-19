@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Mesh, Vector3 } from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
-import { degToRad } from "./Utisl";
+import { degToRad, reverseNumberInRange } from "./Utisl";
 
 interface TerrianType {
     name: string,
@@ -11,7 +11,6 @@ interface TerrianType {
 
 export default class World{
     private _scene: THREE.Scene;
-    private _chunk: THREE.Mesh = new Mesh();
     private _noise?: NoiseGenerator;
     private _terrianTypes: TerrianType[];
 
@@ -30,13 +29,12 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 256;            //At what scale do you want to generate noise
+        noiseParams.scale = 512;            //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";  //What type of noise
-        noiseParams.persistence = 3;        //Controls the amplitude of octaves
-        noiseParams.octaves = 3;            //The amount of noise maps used
+        noiseParams.persistence = 5;        //Controls the amplitude of octaves
+        noiseParams.octaves = 2;            //The amount of noise maps used
         noiseParams.lacunarity = 3;         //Controls frequency of octaves
         noiseParams.exponentiation = 1;     //???
-        noiseParams.height = 3;            //The height of the heightmap
         noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
@@ -44,7 +42,8 @@ export default class World{
         //Create some terriantypes
         this._terrianTypes = new Array; 
         this._terrianTypes.push(
-            { name: "Water", height: -15.0, color: 0xFF0000},
+            { name: "Water", height: 0.0, color: 0xFF0000},
+            { name: "Sand", height: 0.2, color: 0xFFFF00},
             { name: "Land", height: 1.0, color: 0x0000FF}
         );
 
@@ -60,99 +59,125 @@ export default class World{
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 55;
-        let chunkSize = 100;
-        this._chunk = new THREE.Mesh(
+        let resolution = 300;
+        let chunkSize = 400;
+        let chunk = new THREE.Mesh(
             new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
             phongMaterial
-            );
-        this._chunk.castShadow = false;
-        this._chunk.receiveShadow = true;
-        this._chunk.position.set(0,0,0);
+        );
+        chunk.rotation.x = degToRad(90);
         
-        this.ApplyHeightMap();
-        this.ApplyTerrianMap();
+        const heightMap = this.GenerateHeightMap(chunk);
+        this.ApplyHeightMap(chunk, heightMap);
 
-        console.log(this._chunk);
+        //console.log(chunk);
         
-        this._scene.add( this._chunk );
+        this._scene.add( chunk );
     }
 
     //Offset the vertices in the z
-    private ApplyHeightMap(){
+    private ApplyHeightMap(chunkRef: THREE.Mesh, heightMap: Array<Number>){
         //@ts-ignore
-        let vertices = this._chunk.geometry.attributes.position["array"];
+        let vertices = chunkRef.geometry.attributes.position["array"];
 
         // +1 because this is what three js always does
-        let width = this._chunk.geometry.parameters.widthSegments + 1;
-        let height = this._chunk.geometry.parameters.heightSegments + 1;
+        //@ts-ignore
+        let width = chunkRef.geometry.parameters.widthSegments + 1;
+        //@ts-ignore
+        let height = chunkRef.geometry.parameters.heightSegments + 1;
+
+        vertices[2] = -15;
 
         for(let y = 0; y < height; y++){
             for (let x = 0; x < width; x++) {
 
                 //We need to add 3 since each vertex is
                 //(x, y, z)
-                let index = (y * width + x) * 3;
+                let index = y * width + x;
+                let heightDataIndex = reverseNumberInRange(y, 0, height);
+                heightDataIndex = heightDataIndex * width + x;
+                const vertexIndex = index * 3;
 
                 //@ts-ignore
-                vertices[index + 2] = this._noise.Get(vertices[index] + this._chunk.position.x, vertices[index + 1] + this._chunk.position.z);
+                vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * 35.0;
             }
         }
         
         //Recalculate the normals
-        this._chunk.geometry.computeVertexNormals();
+        chunkRef.geometry.computeVertexNormals();
     }
 
-    private ApplyTerrianMap(){
-        // create a buffer with color dataw
-        let width = this._chunk.geometry.parameters.widthSegments + 1;
-        let height = this._chunk.geometry.parameters.heightSegments + 1;
+    private GenerateHeightMap(chunkRef: THREE.Mesh) : Array<Number>{
+        // create a buffer with color data
+        //@ts-ignore
+        let width = chunkRef.geometry.parameters.widthSegments + 1;
+        //@ts-ignore
+        let height = chunkRef.geometry.parameters.heightSegments + 1;
 
         const size = width * height;
-        const data = new Uint8Array( 4 * size );
+        const colorData = new Uint8Array( 4 * size );
+        const heightData = new Array<Number>( size );
 
-        let vertices = this._chunk.geometry.attributes.position["array"];
+        //@ts-ignore
+        let vertices = chunkRef.geometry.attributes.position["array"];
         for(let y = 0; y < height; y++)
         {
             for(let x = 0; x < width; x++)
             {
                 const index = (y * width + x);
                 const stride = index * 4;
-                const vertexIndex = index * 3;
 
                 let water = this._terrianTypes.find(terrianType => terrianType.name == "Water");
-                if(vertices[vertexIndex + 2] < water.height){
-                    data[ stride ] = 0;
-                    data[ stride + 1 ] = 0;
-                    data[ stride + 2 ] = 255;
-                    data[ stride + 3 ] = 255;
+                let sand = this._terrianTypes.find(terrianType => terrianType.name == "Sand");
+                let land = this._terrianTypes.find(terrianType => terrianType.name == "Land");
+
+                let heightValue = this._noise.Get(x, y);
+                
+                //@ts-ignore
+                if(heightValue <= water.height){
+                    colorData[ stride ] = 0;
+                    colorData[ stride + 1 ] = 0;
+                    colorData[ stride + 2 ] = 255;
+                    colorData[ stride + 3 ] = 255;
                 }
-                else{
-                    data[ stride ] = 0;
-                    data[ stride + 1 ] = 255;
-                    data[ stride + 2 ] = 0;
-                    data[ stride + 3 ] = 255;
+                else if(heightValue <= sand.height){
+                    colorData[ stride ] = 255;
+                    colorData[ stride + 1 ] = 255;
+                    colorData[ stride + 2 ] = 0;
+                    colorData[ stride + 3 ] = 255;
                 }
+                else if((heightValue <= land.height)){
+                    colorData[ stride ] = 0;
+                    colorData[ stride + 1 ] = 255;
+                    colorData[ stride + 2 ] = 0;
+                    colorData[ stride + 3 ] = 255;
+                }
+
+                heightData[index] = heightValue;
             }
         }
 
+
         // used the buffer to create a DataTexture
-        const texture = new THREE.DataTexture( data, width, height, THREE.RGBAFormat );
+        const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
 
-        this._chunk.material.map = texture;
+        chunkRef.material.map = texture;
+        
+        return heightData;
     }
 
     private Lighthing(){
         let light = new THREE.DirectionalLight(0x808080, 1);
-        light.position.set(0, -30, 150);
+        light.position.set(0, 100, 150);
         light.target.position.set(0, 0, 0);
+        light.intensity = 2;
         //light.castShadow = false;
 
         this._scene.add(light);
     }
 
     public updateEntities(deltaTime: number){
-        //this._chunk.rotation.z += deltaTime * degToRad(25);
+
     }
 }
