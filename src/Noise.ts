@@ -62,6 +62,7 @@ export default class NoiseGenerator {
         let frequency = 1.0;
         let normalization = 0;
         let total = 0;
+        const G = 2.0 ** (-this._params.persistence);
 
         for (let o = 0; o < this._params.octaves; o++) {
             //Sample coordinates
@@ -72,7 +73,7 @@ export default class NoiseGenerator {
             total += noiseValue * amplitude;
             
             normalization += amplitude;
-            amplitude *= this._params.persistence;
+            amplitude *= G;
             frequency *= this._params.lacunarity;
         }
         total /= normalization;

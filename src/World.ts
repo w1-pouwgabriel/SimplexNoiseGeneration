@@ -29,9 +29,9 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 512;            //At what scale do you want to generate noise
+        noiseParams.scale = 256;            //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";  //What type of noise
-        noiseParams.persistence = 5;        //Controls the amplitude of octaves
+        noiseParams.persistence = 55;        //Controls the amplitude of octaves
         noiseParams.octaves = 2;            //The amount of noise maps used
         noiseParams.lacunarity = 3;         //Controls frequency of octaves
         noiseParams.exponentiation = 1;     //???
@@ -98,8 +98,14 @@ export default class World{
                 heightDataIndex = heightDataIndex * width + x;
                 const vertexIndex = index * 3;
 
-                //@ts-ignore
-                vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * 35.0;
+                if(heightMap[heightDataIndex] < 0.0){
+                    //@ts-ignore
+                    vertices[vertexIndex + 2] = 0;
+                }else{
+                    //@ts-ignore
+                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * 55.0;
+                }
+                
             }
         }
         
