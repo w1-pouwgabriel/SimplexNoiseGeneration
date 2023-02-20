@@ -70,7 +70,7 @@ export default class NoiseGenerator {
             const ys = y / this._params.scale * frequency;
 
             const noiseValue = noiseFunc.noise2D(xs , ys);
-            total += noiseValue * amplitude;
+            total += amplitude * noiseValue;
             
             normalization += amplitude;
             amplitude *= G;

@@ -3,16 +3,19 @@ import { Clock } from "three";
 
 import Graphics from "./Graphics";
 import World from "./World";
+import Constrols from "./Controls";
 
 export default class Game {
     private _Graphics: Graphics;
     private _World: World;
+    private _Controls: Constrols;
    
     private _timer: THREE.Clock = new Clock(true);
     
     constructor() {
         this._World = new World();
         this._Graphics = new Graphics(this._World.scene);
+        this._Controls = new Constrols();
 
         this._timer = new Clock(true);
     }

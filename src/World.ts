@@ -1,18 +1,17 @@
 import * as THREE from "three";
-import { Mesh, Vector3 } from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { degToRad, reverseNumberInRange } from "./Utisl";
 
 interface TerrianType {
     name: string,
     height: number,
-    color: number
+    color: number[]
 };
 
 export default class World{
     private _scene: THREE.Scene;
-    private _noise?: NoiseGenerator;
-    private _terrianTypes: TerrianType[];
+    private _noise: NoiseGenerator;
+    private _terrianTypes: any[] = new Array<TerrianType>(); //Because of stupid type checking we vcan not 
 
     public get scene(){
         return this._scene;
@@ -28,23 +27,27 @@ export default class World{
         this.Lighthing();
 
         //Noise generator
-        let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 256;            //At what scale do you want to generate noise
-        noiseParams.noiseType = "simplex";  //What type of noise
-        noiseParams.persistence = 55;        //Controls the amplitude of octaves
-        noiseParams.octaves = 2;            //The amount of noise maps used
-        noiseParams.lacunarity = 3;         //Controls frequency of octaves
-        noiseParams.exponentiation = 1;     //???
-        noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
+        let noiseparams : NoiseParams = new NoiseParams;
+        noiseparams.scale = 256;            //At what scale do you want to generate noise
+        noiseparams.noiseType = "simplex";  //What type of noise
+        noiseparams.persistence = 3;        //Controls the amplitude of octaves
+        noiseparams.octaves = 4;            //The amount of noise maps used
+        noiseparams.lacunarity = 5;         //Controls frequency of octaves
+        noiseparams.exponentiation = 1;     //???
+        noiseparams.seed = Math.random();   // Math.random(); //Generate a random seed
 
-        this._noise = new NoiseGenerator(noiseParams);
+        this._noise = new NoiseGenerator(noiseparams);
 
         //Create some terriantypes
-        this._terrianTypes = new Array; 
         this._terrianTypes.push(
-            { name: "Water", height: 0.0, color: 0xFF0000},
-            { name: "Sand", height: 0.2, color: 0xFFFF00},
-            { name: "Land", height: 1.0, color: 0x0000FF}
+            { name: "WaterDeep",    height: -0.5,   color: [0, 0, 126, 255]},
+            { name: "WaterShallow", height: 0.0,    color: [0, 0, 255, 255]},
+            { name: "Sand",         height: 0.2,    color: [255, 255, 0, 255]},
+            { name: "Land1",        height: 0.4,    color: [0, 255, 0, 255]},
+            { name: "Land2",        height: 0.6,    color: [0, 126, 0, 255]},
+            { name: "Mountain1",    height: 0.7,    color: [255, 150, 0, 255]},
+            { name: "Mountain2",    height: 0.9,    color: [150, 75, 0, 255]},
+            { name: "Snow",         height: 1.0,    color: [255, 255, 255, 255]}
         );
 
         const texture = new THREE.TextureLoader().load('./assets/land.jpg');
@@ -98,12 +101,12 @@ export default class World{
                 heightDataIndex = heightDataIndex * width + x;
                 const vertexIndex = index * 3;
 
-                if(heightMap[heightDataIndex] < 0.0){
+                if(heightMap[heightDataIndex] <= 0.0){
                     //@ts-ignore
                     vertices[vertexIndex + 2] = 0;
                 }else{
                     //@ts-ignore
-                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * 55.0;
+                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 77.0;
                 }
                 
             }
@@ -123,40 +126,72 @@ export default class World{
         const size = width * height;
         const colorData = new Uint8Array( 4 * size );
         const heightData = new Array<Number>( size );
-
-        //@ts-ignore
-        let vertices = chunkRef.geometry.attributes.position["array"];
+        
         for(let y = 0; y < height; y++)
         {
             for(let x = 0; x < width; x++)
             {
                 const index = (y * width + x);
-                const stride = index * 4;
+                const stride = index
 
-                let water = this._terrianTypes.find(terrianType => terrianType.name == "Water");
-                let sand = this._terrianTypes.find(terrianType => terrianType.name == "Sand");
-                let land = this._terrianTypes.find(terrianType => terrianType.name == "Land");
+                let WaterDeep: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "WaterDeep");
+                let WaterShallow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "WaterShallow");
+                let Sand: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Sand");
+                let Land1: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Land1");
+                let Land2: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Land2");
+                let Mountain1: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Mountain1");
+                let Mountain2: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Mountain2");
+                let Snow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Snow");
 
                 let heightValue = this._noise.Get(x, y);
                 
-                //@ts-ignore
-                if(heightValue <= water.height){
-                    colorData[ stride ] = 0;
-                    colorData[ stride + 1 ] = 0;
-                    colorData[ stride + 2 ] = 255;
-                    colorData[ stride + 3 ] = 255;
+                if(heightValue <= WaterDeep.height){
+                    colorData[ stride ] = WaterDeep.color[0];
+                    colorData[ stride + 1 ] = WaterDeep.color[1];
+                    colorData[ stride + 2 ] = WaterDeep.color[2];
+                    colorData[ stride + 3 ] = WaterDeep.color[3];
                 }
-                else if(heightValue <= sand.height){
-                    colorData[ stride ] = 255;
-                    colorData[ stride + 1 ] = 255;
-                    colorData[ stride + 2 ] = 0;
-                    colorData[ stride + 3 ] = 255;
+                else if(heightValue <= WaterShallow.height){
+                    colorData[ stride ] = WaterShallow.color[0];
+                    colorData[ stride + 1 ] = WaterShallow.color[1];
+                    colorData[ stride + 2 ] = WaterShallow.color[2];
+                    colorData[ stride + 3 ] = WaterShallow.color[3];
                 }
-                else if((heightValue <= land.height)){
-                    colorData[ stride ] = 0;
-                    colorData[ stride + 1 ] = 255;
-                    colorData[ stride + 2 ] = 0;
-                    colorData[ stride + 3 ] = 255;
+                else if((heightValue <= Sand.height)){
+                    colorData[ stride ] = Sand.color[0];
+                    colorData[ stride + 1 ] = Sand.color[1];
+                    colorData[ stride + 2 ] = Sand.color[2];
+                    colorData[ stride + 3 ] = Sand.color[3];
+                }
+                else if((heightValue <= Land1.height)){
+                    colorData[ stride ] = Land1.color[0];
+                    colorData[ stride + 1 ] = Land1.color[1];
+                    colorData[ stride + 2 ] = Land1.color[2];
+                    colorData[ stride + 3 ] = Land1.color[3];
+                }
+                else if((heightValue <= Land2.height)){
+                    colorData[ stride ] = Land2.color[0];
+                    colorData[ stride + 1 ] = Land2.color[1];
+                    colorData[ stride + 2 ] = Land2.color[2];
+                    colorData[ stride + 3 ] = Land2.color[3];
+                }
+                else if((heightValue <= Mountain1.height)){
+                    colorData[ stride ] = Mountain1.color[0];
+                    colorData[ stride + 1 ] = Mountain1.color[1];
+                    colorData[ stride + 2 ] = Mountain1.color[2];
+                    colorData[ stride + 3 ] = Mountain1.color[3];
+                }
+                else if((heightValue <= Mountain2.height)){
+                    colorData[ stride ] = Mountain2.color[0];
+                    colorData[ stride + 1 ] = Mountain2.color[1];
+                    colorData[ stride + 2 ] = Mountain2.color[2];
+                    colorData[ stride + 3 ] = Mountain2.color[3];
+                }
+                else if((heightValue <= Snow.height)){
+                    colorData[ stride ] = Snow.color[0];
+                    colorData[ stride + 1 ] = Snow.color[1];
+                    colorData[ stride + 2 ] = Snow.color[2];
+                    colorData[ stride + 3 ] = Snow.color[3];
                 }
 
                 heightData[index] = heightValue;
@@ -168,6 +203,7 @@ export default class World{
         const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
 
+        //@ts-ignore
         chunkRef.material.map = texture;
         
         return heightData;
@@ -178,7 +214,7 @@ export default class World{
         light.position.set(0, 100, 150);
         light.target.position.set(0, 0, 0);
         light.intensity = 2;
-        //light.castShadow = false;
+        light.castShadow = false;
 
         this._scene.add(light);
     }
