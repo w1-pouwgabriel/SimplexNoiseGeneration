@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Mesh, Vector3 } from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { degToRad, reverseNumberInRange } from "./Utisl";
 
@@ -10,7 +11,7 @@ interface TerrianType {
 
 export default class World{
     private _scene: THREE.Scene;
-    private _noise: NoiseGenerator;
+    private _noise?: NoiseGenerator;
     private _terrianTypes: any[] = new Array<TerrianType>(); //Because of stupid type checking we vcan not 
 
     public get scene(){
@@ -27,16 +28,16 @@ export default class World{
         this.Lighthing();
 
         //Noise generator
-        let noiseparams : NoiseParams = new NoiseParams;
-        noiseparams.scale = 256;            //At what scale do you want to generate noise
-        noiseparams.noiseType = "simplex";  //What type of noise
-        noiseparams.persistence = 3;        //Controls the amplitude of octaves
-        noiseparams.octaves = 4;            //The amount of noise maps used
-        noiseparams.lacunarity = 5;         //Controls frequency of octaves
-        noiseparams.exponentiation = 1;     //???
-        noiseparams.seed = Math.random();   // Math.random(); //Generate a random seed
+        let noiseParams: NoiseParams = new NoiseParams();
+        noiseParams.scale = 256;            //At what scale do you want to generate noise
+        noiseParams.noiseType = "simplex";  //What type of noise
+        noiseParams.persistence = 3;        //Controls the amplitude of octaves
+        noiseParams.octaves = 4;            //The amount of noise maps used
+        noiseParams.lacunarity = 5;         //Controls frequency of octaves
+        noiseParams.exponentiation = 1;     //???
+        noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
 
-        this._noise = new NoiseGenerator(noiseparams);
+        this._noise = new NoiseGenerator(noiseParams);
 
         //Create some terriantypes
         this._terrianTypes.push(
@@ -89,8 +90,6 @@ export default class World{
         //@ts-ignore
         let height = chunkRef.geometry.parameters.heightSegments + 1;
 
-        vertices[2] = -15;
-
         for(let y = 0; y < height; y++){
             for (let x = 0; x < width; x++) {
 
@@ -132,7 +131,7 @@ export default class World{
             for(let x = 0; x < width; x++)
             {
                 const index = (y * width + x);
-                const stride = index
+                const stride = index * 4;
 
                 let WaterDeep: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "WaterDeep");
                 let WaterShallow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "WaterShallow");
@@ -203,7 +202,6 @@ export default class World{
         const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
 
-        //@ts-ignore
         chunkRef.material.map = texture;
         
         return heightData;
