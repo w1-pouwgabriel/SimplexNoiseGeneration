@@ -12,4 +12,5 @@ to view changes open the index.html file in any browser supporting webGL2.0
   <li>LOD</li>
   <li>Triplanar mapping</li>
   <li>Generate normals</li>
+  <li>Debug UI</li>
 </ul>
