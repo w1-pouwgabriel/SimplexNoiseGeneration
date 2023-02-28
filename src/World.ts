@@ -11,7 +11,7 @@ interface TerrianType {
 
 export default class World{
     private _scene: THREE.Scene;
-    private _noise?: NoiseGenerator;
+    private _noise: NoiseGenerator;
     private _terrianTypes: any[] = new Array<TerrianType>(); //Because of stupid type checking we vcan not 
 
     public get scene(){
@@ -35,7 +35,7 @@ export default class World{
         noiseParams.octaves = 4;            //The amount of noise maps used
         noiseParams.lacunarity = 5;         //Controls frequency of octaves
         noiseParams.exponentiation = 1;     //???
-        noiseParams.seed = Math.random();   // Math.random(); //Generate a random seed
+        noiseParams.seed = 1234;            // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
 
@@ -55,7 +55,7 @@ export default class World{
 
         //Later maybe have different materials for different terrian types?
         let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: false,
+            wireframe: true,
             color: 0x808080,
             side: THREE.DoubleSide,
             //vertexColors: true
@@ -63,7 +63,7 @@ export default class World{
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 300;
+        let resolution = 256;
         let chunkSize = 400;
         let chunk = new THREE.Mesh(
             new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
@@ -202,6 +202,7 @@ export default class World{
         const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
 
+        //@ts-ignore
         chunkRef.material.map = texture;
         
         return heightData;

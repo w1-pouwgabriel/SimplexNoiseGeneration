@@ -1,0 +1,33 @@
+body {
+    font-family: sans-serif;
+    overflow: hidden;
+    margin: 0px;
+}
+
+#debugWrapper{
+    position: absolute;
+    width: 400px;
+    padding: 40px;
+    background: purple;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+#debugWrapper h2 {
+    margin: 0 0 30px;
+    padding: 0;
+    color: #fff;
+    text-align: center;
+}
+
+#debugWrapper input {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 30px;
+    border: none;
+    border-bottom: 1px solid #fff;
+    outline: none;
+    background: transparent;
+}
