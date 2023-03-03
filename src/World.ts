@@ -226,7 +226,7 @@ export default class World{
 
         let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
         let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
-
+        
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
         noiseParams.scale = parseInt(noiseScale.value);          //At what scale do you want to generate noise
@@ -235,7 +235,7 @@ export default class World{
         noiseParams.octaves = 4;                                 //The amount of noise maps used
         noiseParams.lacunarity = 5;                              //Controls frequency of octaves
         noiseParams.exponentiation = 1;                          //???
-        noiseParams.seed = parseInt(noiseSeed.value);            // Math.random(); //Generate a random seed
+        noiseParams.seed = parseFloat(noiseSeed.value);            // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
 
