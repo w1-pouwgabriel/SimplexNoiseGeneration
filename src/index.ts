@@ -18,6 +18,11 @@ export default class Game {
         this._Controls = new Constrols();
 
         this._timer = new Clock(true);
+
+        let button: HTMLButtonElement = document.getElementById("generate") as HTMLButtonElement;
+        button.addEventListener("click", (e: Event) => {
+            this._World.Reset();
+        });
     }
 
     public async Load(){

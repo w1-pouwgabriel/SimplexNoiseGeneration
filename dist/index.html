@@ -6,10 +6,19 @@
     </head>
     <body>
         <div id="debugWrapper">
-            <h2>Noice values</h2>
-            <div class="user-box">
-                <input type="text" name="" required="">
-                <label>Chunk resolution</label>
+            <h2>Debug values</h2>
+            <!-- NOISE OPTIONS -->
+            <div class="option-box">
+                <label>Render scale</label>
+                <input type="text" id="noiseScale">
+            </div>
+            <div class="option-box">
+                <label>Noise seed</label>
+                <input type="text" id="noiseSeed">
+            </div>
+            <br> <!--  BUTTON -->
+            <div class="button-box">
+                <button type="submit" id="generate">Generate</button>
             </div>
         </div>
         <script src="/dist/js/index.js" type="module"></script>

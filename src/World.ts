@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Mesh, Vector3 } from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { degToRad, reverseNumberInRange } from "./Utisl";
 
@@ -35,7 +34,7 @@ export default class World{
         noiseParams.octaves = 4;            //The amount of noise maps used
         noiseParams.lacunarity = 5;         //Controls frequency of octaves
         noiseParams.exponentiation = 1;     //???
-        noiseParams.seed = 1234;            // Math.random(); //Generate a random seed
+        noiseParams.seed = Math.random();            // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
 
@@ -55,15 +54,14 @@ export default class World{
 
         //Later maybe have different materials for different terrian types?
         let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: true,
+            wireframe: false,
             color: 0x808080,
             side: THREE.DoubleSide,
-            //vertexColors: true
             map: texture
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 256;
+        let resolution = 256; //256, 128, 64, 32, 16, 8
         let chunkSize = 400;
         let chunk = new THREE.Mesh(
             new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
@@ -73,10 +71,14 @@ export default class World{
         
         const heightMap = this.GenerateHeightMap(chunk);
         this.ApplyHeightMap(chunk, heightMap);
-
-        //console.log(chunk);
         
         this._scene.add( chunk );
+
+        let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+        noiseScale.value = noiseParams.scale.toString();
+
+        let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
+        noiseSeed.value = noiseParams.seed.toString();
     }
 
     //Offset the vertices in the z
@@ -197,7 +199,6 @@ export default class World{
             }
         }
 
-
         // used the buffer to create a DataTexture
         const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
@@ -216,6 +217,52 @@ export default class World{
         light.castShadow = false;
 
         this._scene.add(light);
+    }
+
+    public Reset(){
+        this._scene.clear();
+
+        this.Lighthing();
+
+        let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+        let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
+
+        //Noise generator
+        let noiseParams: NoiseParams = new NoiseParams();
+        noiseParams.scale = parseInt(noiseScale.value);          //At what scale do you want to generate noise
+        noiseParams.noiseType = "simplex";                       //What type of noise
+        noiseParams.persistence = 3;                             //Controls the amplitude of octaves
+        noiseParams.octaves = 4;                                 //The amount of noise maps used
+        noiseParams.lacunarity = 5;                              //Controls frequency of octaves
+        noiseParams.exponentiation = 1;                          //???
+        noiseParams.seed = parseInt(noiseSeed.value);            // Math.random(); //Generate a random seed
+
+        this._noise = new NoiseGenerator(noiseParams);
+
+        const texture = new THREE.TextureLoader().load('./assets/land.jpg');
+
+        //Later maybe have different materials for different terrian types?
+        let phongMaterial = new THREE.MeshPhongMaterial({
+            wireframe: false,
+            color: 0x808080,
+            side: THREE.DoubleSide,
+            //vertexColors: true
+            map: texture
+        });
+        phongMaterial.flatShading = true;
+
+        let resolution = parseInt(noiseScale.value);
+        let chunkSize = 400;
+        let chunk = new THREE.Mesh(
+            new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
+            phongMaterial
+        );
+        chunk.rotation.x = degToRad(90);
+        
+        const heightMap = this.GenerateHeightMap(chunk);
+        this.ApplyHeightMap(chunk, heightMap);
+        
+        this._scene.add( chunk );
     }
 
     public updateEntities(deltaTime: number){

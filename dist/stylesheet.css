@@ -20,6 +20,12 @@ body {
     text-align: center;
 }
 
+#debugWrapper label {
+    display: inline-block;
+    width: 140px;
+    color: white;
+}​
+
 #debugWrapper input {
     width: 100%;
     padding: 10px 0;
@@ -31,3 +37,25 @@ body {
     outline: none;
     background: transparent;
 }
+
+.button-box{
+    width: 100%;
+}
+
+button {
+    transition: background-color .3s ease-in-out;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 30px;
+    border: none;
+    border-bottom: 1px solid #fff;
+    outline: none;
+    background-color: transparent;
+  }
+
+  button:hover {
+    
+    background-color: #89caff94;
+  }
