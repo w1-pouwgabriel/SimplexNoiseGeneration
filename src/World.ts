@@ -79,6 +79,9 @@ export default class World{
 
         let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
         noiseSeed.value = noiseParams.seed.toString();
+
+        let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
+        noiseZoom.value = "1";
     }
 
     //Offset the vertices in the z
@@ -220,22 +223,29 @@ export default class World{
     }
 
     public Reset(){
+        let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+        let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
+        let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
+
+        if(parseFloat(noiseZoom.value) <= 0.0 || parseFloat(noiseZoom.value) > 1 || Number.isNaN(parseFloat(noiseZoom.value)))
+        {
+            window.alert("Use a correct zoom value");
+            return;
+        }
+
         this._scene.clear();
 
         this.Lighthing();
 
-        let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
-        let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
-        
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = parseInt(noiseScale.value);          //At what scale do you want to generate noise
-        noiseParams.noiseType = "simplex";                       //What type of noise
-        noiseParams.persistence = 3;                             //Controls the amplitude of octaves
-        noiseParams.octaves = 4;                                 //The amount of noise maps used
-        noiseParams.lacunarity = 5;                              //Controls frequency of octaves
-        noiseParams.exponentiation = 1;                          //???
-        noiseParams.seed = parseFloat(noiseSeed.value);            // Math.random(); //Generate a random seed
+        noiseParams.scale = parseInt(noiseScale.value) / parseFloat(noiseZoom.value);
+        noiseParams.noiseType = "simplex";                       
+        noiseParams.persistence = 3;                             
+        noiseParams.octaves = 4;                                 
+        noiseParams.lacunarity = 5;                              
+        noiseParams.exponentiation = 1;                          
+        noiseParams.seed = parseFloat(noiseSeed.value);          
 
         this._noise = new NoiseGenerator(noiseParams);
 
