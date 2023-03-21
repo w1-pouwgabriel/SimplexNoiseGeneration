@@ -31,11 +31,12 @@ export default class Game {
     }
 
     public Render(){
+        requestAnimationFrame(this.Render.bind(this));
+
         let deltaTime: any = this._timer.getDelta();
 
         this._World.updateEntities(deltaTime);
         this._Graphics.Render();
-        requestAnimationFrame(this.Render.bind(this));
     }
 }
 

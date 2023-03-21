@@ -1,12 +1,12 @@
 import * as THREE from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 import { Vec2, Vector2 } from "three";
 
 export default class Graphics{
     private _camera: THREE.Camera;
     private _renderer: THREE.WebGLRenderer;
     private _sceneRef: THREE.Scene;
-    private _controls: OrbitControls;
+    private _controls: FlyControls;
 
     private _windowSize: Vec2;
 
@@ -38,8 +38,10 @@ export default class Graphics{
         this._camera.position.set(0, 300, 250);
         this._camera.lookAt(0,0,0);
 
-        this._controls = new OrbitControls(this._camera, this._renderer.domElement);
-        this._controls.update();
+        this._controls = new FlyControls(this._camera, this._renderer.domElement);
+        this._controls.movementSpeed = 100;
+        this._controls.rollSpeed = 0.3;
+        this._controls.dragToLook = true;
 
         this._sceneRef = sceneRef;
     }
@@ -51,7 +53,7 @@ export default class Graphics{
     }
 
     public Render(){
-        this._controls.update();
+        this._controls.update(1/60);
         this._renderer.render(this._sceneRef, this._camera);
     }
 

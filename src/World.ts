@@ -11,7 +11,8 @@ interface TerrianType {
 export default class World{
     private _scene: THREE.Scene;
     private _noise: NoiseGenerator;
-    private _terrianTypes: any[] = new Array<TerrianType>(); //Because of stupid type checking we vcan not 
+    private _terrianTypes: any[] = new Array<TerrianType>(); 
+    private _terrian: THREE.Mesh[][] = new Array<Array<THREE.Mesh>>;
 
     public get scene(){
         return this._scene;
@@ -56,7 +57,7 @@ export default class World{
         let phongMaterial = new THREE.MeshPhongMaterial({
             wireframe: false,
             color: 0x808080,
-            side: THREE.DoubleSide,
+            side: THREE.BackSide,
             map: texture
         });
         phongMaterial.flatShading = true;
@@ -74,14 +75,17 @@ export default class World{
         
         this._scene.add( chunk );
 
-        let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
-        noiseScale.value = noiseParams.scale.toString();
+        //SET DEBUG MENU VALUES
+        {
+            let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+            noiseScale.value = noiseParams.scale.toString();
 
-        let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
-        noiseSeed.value = noiseParams.seed.toString();
+            let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
+            noiseSeed.value = noiseParams.seed.toString();
 
-        let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
-        noiseZoom.value = "1";
+            let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
+            noiseZoom.value = "1";
+        }
     }
 
     //Offset the vertices in the z
@@ -226,6 +230,7 @@ export default class World{
         let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
         let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
         let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
+        let wireframe = document.getElementById("wireframe") as HTMLInputElement;
 
         if(parseFloat(noiseZoom.value) <= 0.0 || parseFloat(noiseZoom.value) > 1 || Number.isNaN(parseFloat(noiseZoom.value)))
         {
@@ -253,10 +258,9 @@ export default class World{
 
         //Later maybe have different materials for different terrian types?
         let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: false,
+            wireframe: wireframe.checked,
             color: 0x808080,
-            side: THREE.DoubleSide,
-            //vertexColors: true
+            side: THREE.BackSide,
             map: texture
         });
         phongMaterial.flatShading = true;
