@@ -11,6 +11,7 @@ interface TerrianType {
 export default class World{
     private _scene: THREE.Scene;
     private _noise: NoiseGenerator;
+
     private _terrianTypes: any[] = new Array<TerrianType>(); 
     private _terrian: THREE.Mesh[][] = new Array<Array<THREE.Mesh>>;
 
@@ -62,6 +63,7 @@ export default class World{
         });
         phongMaterial.flatShading = true;
 
+        //--------------------------------------------- CHUNK CREATION ----------------------------------------
         let resolution = 256; //256, 128, 64, 32, 16, 8
         let chunkSize = 400;
         let chunk = new THREE.Mesh(
@@ -73,7 +75,9 @@ export default class World{
         const heightMap = this.GenerateHeightMap(chunk);
         this.ApplyHeightMap(chunk, heightMap);
         
+        this._scene.remove(chunk);
         this._scene.add( chunk );
+        //-----------------------------------------------------------------------------------------------------
 
         //SET DEBUG MENU VALUES
         {
@@ -121,7 +125,7 @@ export default class World{
         }
         
         //Recalculate the normals
-        chunkRef.geometry.computeVertexNormals();
+        //chunkRef.geometry.computeVertexNormals();
     }
 
     private GenerateHeightMap(chunkRef: THREE.Mesh) : Array<Number>{
@@ -231,6 +235,7 @@ export default class World{
         let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
         let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
         let wireframe = document.getElementById("wireframe") as HTMLInputElement;
+        let randomSeed = document.getElementById("randomSeed") as HTMLInputElement;
 
         if(parseFloat(noiseZoom.value) <= 0.0 || parseFloat(noiseZoom.value) > 1 || Number.isNaN(parseFloat(noiseZoom.value)))
         {
@@ -248,9 +253,16 @@ export default class World{
         noiseParams.noiseType = "simplex";                       
         noiseParams.persistence = 3;                             
         noiseParams.octaves = 4;                                 
-        noiseParams.lacunarity = 5;                              
-        noiseParams.exponentiation = 1;                          
-        noiseParams.seed = parseFloat(noiseSeed.value);          
+        noiseParams.lacunarity = 5;
+        noiseParams.exponentiation = 1;
+        if(randomSeed.checked){
+            noiseParams.seed = Math.random();
+            noiseSeed.value = noiseParams.seed;
+        }
+        else{
+            noiseParams.seed = parseFloat(noiseSeed.value);
+        }
+                  
 
         this._noise = new NoiseGenerator(noiseParams);
 

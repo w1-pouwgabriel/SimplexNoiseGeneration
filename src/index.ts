@@ -1,23 +1,27 @@
 import * as THREE from "three";
 import { Clock } from "three";
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 
 import Graphics from "./Graphics";
 import World from "./World";
-import Constrols from "./Controls";
 
 export default class Game {
     private _Graphics: Graphics;
     private _World: World;
-    private _Controls: Constrols;
-   
+    private _Controls: FlyControls;
+    
     private _timer: THREE.Clock = new Clock(true);
     
     constructor() {
         this._World = new World();
         this._Graphics = new Graphics(this._World.scene);
-        this._Controls = new Constrols();
 
         this._timer = new Clock(true);
+
+        this._Controls = new FlyControls(this._Graphics.camera, this._Graphics.renderer.domElement);
+        this._Controls.movementSpeed = 250;
+        this._Controls.rollSpeed = 0.7;
+        this._Controls.dragToLook = true;
 
         let button: HTMLButtonElement = document.getElementById("generate") as HTMLButtonElement;
         button.addEventListener("click", (e: Event) => {
@@ -35,8 +39,9 @@ export default class Game {
 
         let deltaTime: any = this._timer.getDelta();
 
+        this._Controls.update(deltaTime);
         this._World.updateEntities(deltaTime);
-        this._Graphics.Render();
+        this._Graphics.Render(deltaTime);
     }
 }
 
