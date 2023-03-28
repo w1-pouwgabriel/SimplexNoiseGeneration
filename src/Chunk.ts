@@ -5,6 +5,7 @@ import { degToRad } from "./Utisl";
 export default class Chunk{
 
     private _ChunkObject : THREE.Mesh = new THREE.Mesh();
+    private _Bounds: THREE.Box3 = new THREE.Box3();
     private _Position: Vector2 = new Vector2();
     private _IsVisible: boolean = false;
 
@@ -14,6 +15,10 @@ export default class Chunk{
 
     public get ChunkObject(){
         return this._ChunkObject;
+    }
+
+    public get Bound(){
+        return this._Bounds;
     }
 
     constructor(coords: Vector2, size: number){
@@ -26,20 +31,27 @@ export default class Chunk{
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 256;
+        let resolution = 16; //256, 128, 64, 32
         this._ChunkObject = new THREE.Mesh(
             new THREE.PlaneGeometry(size, size, resolution, resolution),
             phongMaterial
         );
         //chunk.position.add(new THREE.Vector3((this._chunkSize * xOffset) + 25 * xOffset, 0, (this._chunkSize * yOffset) + 25 * yOffset));
-        this._ChunkObject.position.add(new THREE.Vector3(coords.x * size, 0, coords.y * size));
-        this._ChunkObject.rotation.x = degToRad(90);
+        this._ChunkObject.position.add(new THREE.Vector3(this._Position.x, this._Position.y, 0));
+        //this._ChunkObject.rotation.x = degToRad(90);
         this._ChunkObject.visible = this._IsVisible;
+
+        let min : THREE.Vector3 = new THREE.Vector3(this._Position.x - size, this._Position.y - size, 0.0);
+        let max : THREE.Vector3 = new THREE.Vector3(this._Position.x + size, this._Position.y + size, 1.0);
+        this._Bounds = new THREE.Box3(
+            min,
+            max
+        );
     }
 
-    public Update(maxViewDst: number, cameraPosition: THREE.Vector3){
-        let distance = (cameraPosition.x - this._Position.x) * (cameraPosition.x - this._Position.x) + (cameraPosition.z - this._Position.y) * (cameraPosition.z - this._Position.y);  
-        const isVisible = distance <=  maxViewDst * maxViewDst;
+    public UpdateChunkVisibility(maxViewDst: number, ObjectPosition: THREE.Vector3){
+        let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
+        const isVisible = distanceToClosestPoint <= maxViewDst * 0.8;
         
         this.SetVisible(isVisible);
     }

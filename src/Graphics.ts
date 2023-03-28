@@ -33,8 +33,8 @@ export default class Graphics{
         const near = 0.1;
         const far = 5000.0;
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this._camera.position.set(0, 500, 250);
-        this._camera.lookAt(0, 0, 500);
+        this._camera.position.set(0, 0, -1950);
+        this._camera.lookAt(0, 0, 0);
 
         this._sceneRef = sceneRef;
     }

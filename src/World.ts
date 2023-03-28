@@ -17,13 +17,15 @@ export default class World{
     //@ts-ignore
     private _controlRef: FlyControls;
 
-    private _chunkSize: number = 400;
+    private _chunkSize: number = 100;
     private _terrianTypes: any[] = new Array<TerrianType>(); 
     private _terrian: Map<string, Chunk> = new Map();
 
     //Render distance options
-    private _MaxViewDst: number = 900;
+    private _MaxViewDst: number = 300;
     private _ChunksVisableInViewDst: number = 1;
+
+    private _LoadingAndRenderingCube : THREE.Mesh = new THREE.Mesh();
 
     public get scene(){
         return this._scene;
@@ -68,31 +70,20 @@ export default class World{
             { name: "Snow",         height: 1.0,    color: [255, 255, 255, 255]}
         );
 
-        // const texture = new THREE.TextureLoader().load('./assets/land.jpg');
+        let phongMaterial = new THREE.MeshBasicMaterial({
+            wireframe: false,
+            color: 0xFF00FF,
+            side: THREE.DoubleSide,
+        });
 
-        // //Later maybe have different materials for different terrian types?
-        // let phongMaterial = new THREE.MeshPhongMaterial({
-        //     wireframe: false,
-        //     color: 0x808080,
-        //     side: THREE.BackSide,
-        //     map: texture
-        // });
-        // phongMaterial.flatShading = true;
+        let resolution = 16; //256, 128, 64, 32
+        this._LoadingAndRenderingCube = new THREE.Mesh(
+            new THREE.BoxGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
+            phongMaterial
+        );
+        this._LoadingAndRenderingCube.position.add(new THREE.Vector3(0,0,0));
 
-        // //--------------------------------------------- CHUNK CREATION ----------------------------------------
-        // let resolution = 256; //256, 128, 64, 32, 16, 8
-        // let chunk = new THREE.Mesh(
-        //     new THREE.PlaneGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
-        //     phongMaterial
-        // );
-        // chunk.position.add(new THREE.Vector3(0,0,0));
-        // chunk.rotation.x = degToRad(90);
-        
-        // const heightMap = this.GenerateHeightMap(chunk);
-        // this.ApplyHeightMap(chunk, heightMap);
-        
-        //this._scene.add( chunk );
-        //-----------------------------------------------------------------------------------------------------
+        this.scene.add(this._LoadingAndRenderingCube);
 
         //SET DEBUG MENU VALUES
         {
@@ -143,7 +134,7 @@ export default class World{
         //chunkRef.geometry.computeVertexNormals();
     }
 
-    private GenerateHeightMap(chunkRef: THREE.Mesh) : Array<Number>{
+    private GenerateHeightMap(chunkRef: THREE.Mesh, mapCoordinate: THREE.Vector2) : Array<Number>{
         // create a buffer with color data
         //@ts-ignore
         let width = chunkRef.geometry.parameters.widthSegments + 1;
@@ -154,9 +145,9 @@ export default class World{
         const colorData = new Uint8Array( 4 * size );
         const heightData = new Array<Number>( size );
         
-        for(let y = chunkRef.position.z; y < height + chunkRef.position.z; y++)
+        for(let y = 0; y < height; y++)
         {
-            for(let x = chunkRef.position.x; x < width + chunkRef.position.x; x++)
+            for(let x = 0; x < width; x++)
             {
                 const index = (y * width + x);
                 const stride = index * 4;
@@ -170,7 +161,7 @@ export default class World{
                 let Mountain2: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Mountain2");
                 let Snow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Snow");
 
-                let heightValue = this._noise.Get(x, y);
+                let heightValue = this._noise.Get(x * mapCoordinate.x, y * mapCoordinate.y);
                 
                 if(heightValue <= WaterDeep.height){
                     colorData[ stride ] = WaterDeep.color[0];
@@ -237,7 +228,7 @@ export default class World{
 
     private Lighthing(){
         let light = new THREE.DirectionalLight(0x808080, 1);
-        light.position.set(0, 100, 150);
+        light.position.set(0, 100, -500);
         light.target.position.set(0, 0, 0);
         light.intensity = 2;
         light.castShadow = false;
@@ -300,7 +291,7 @@ export default class World{
         );
         chunk.rotation.x = degToRad(90);
         
-        const heightMap = this.GenerateHeightMap(chunk);
+        const heightMap = this.GenerateHeightMap(chunk, new THREE.Vector2(1,1));
         this.ApplyHeightMap(chunk, heightMap);
         
         this._scene.add( chunk );
@@ -313,6 +304,12 @@ export default class World{
         );
         playerChunkIndex.round();
 
+        console.log(this._controlRef.object.position);
+
+        let cubePos = this._controlRef.object.position.clone();
+        cubePos.z = -150;
+        this._LoadingAndRenderingCube.position.set(cubePos.x, cubePos.y, cubePos.z);
+
         for(let yOffset = -this._ChunksVisableInViewDst; yOffset <= this._ChunksVisableInViewDst; yOffset++){
             for(let xOffset = -this._ChunksVisableInViewDst; xOffset <= this._ChunksVisableInViewDst; xOffset++){
 
@@ -322,13 +319,21 @@ export default class World{
                 if(!this._terrian.has(viewedChunkCoordkString))
                 {
                     let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize);
+
+                    // const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
+                    // this.ApplyHeightMap(chunk, heightMap);
+
+                    const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
+                    box.setFromObject(chunk.ChunkObject);
+                    this._scene.add( box );
                     
                     this._scene.add( chunk.ChunkObject )
                     this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
                 }
                 else{
                     //console.log("Chunk already exist");
-                    this._terrian.get(viewedChunkCoordkString)?.Update(this._MaxViewDst, this._controlRef.object.position);
+
+                    this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._MaxViewDst, cubePos);
                 }
             }
         }
