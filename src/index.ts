@@ -23,10 +23,14 @@ export default class Game {
         this._Controls.rollSpeed = 0.7;
         this._Controls.dragToLook = true;
 
+        this._World.controlRef = this._Controls;
+
         let button: HTMLButtonElement = document.getElementById("generate") as HTMLButtonElement;
         button.addEventListener("click", (e: Event) => {
             this._World.Reset();
         });
+
+        this._World.LoadAndUnload();
     }
 
     public async Load(){

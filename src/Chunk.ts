@@ -13,14 +13,18 @@ export default class Chunk{
         return this.IsVisible;
     }
 
+    public get ChunkObject(){
+        return this._ChunkObject;
+    }
+
     constructor(coords: Vector2, size: number){
-        this._Position = coords.multiplyScalar(size);
+        this._Position = new THREE.Vector2(coords.x * size, coords.y * size);
 
         let max : Vector2 = new Vector2(1,1);
         this._AABB = new THREE.Box3(
-            new Vector3(this._Position.x, this._Position.x,  1.0),  //Min
-            new Vector3((max.multiplyScalar(size).x / 10.0,max.multiplyScalar(size).x / 10.0, 1.0) //Max
-            ));
+            new Vector3(this._Position.x, this._Position.y,  1.0),  //Min
+            new Vector3((max.multiplyScalar(size).x / 10.0, max.multiplyScalar(size).y / 10.0, 1.0) //Max
+        ));
         
         const position3D : Vector3 = new Vector3(this._Position.x, 0, this._Position.y);
         const texture = new THREE.TextureLoader().load('./assets/land.jpg'); //Defualy material to fall back on

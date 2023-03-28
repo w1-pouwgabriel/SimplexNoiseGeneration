@@ -31,12 +31,10 @@ export default class Graphics{
         const fov = 75;
         const aspect = this._windowSize.x / this._windowSize.y;
         const near = 0.1;
-        const far = 1000.0;
+        const far = 5000.0;
         this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this._camera.rotation.set(0, 0, 0);
-        this._camera.position.set(0, 300, 250);
-        this._camera.lookAt(0, 0, 0);
-
+        this._camera.position.set(0, 1500, 1500);
+        this._camera.lookAt(0, 0, 1500);
 
         this._sceneRef = sceneRef;
     }

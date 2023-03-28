@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { degToRad, reverseNumberInRange } from "./Utisl";
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 
 interface TerrianType {
     name: string,
@@ -12,11 +13,23 @@ export default class World{
     private _scene: THREE.Scene;
     private _noise: NoiseGenerator;
 
+    //@ts-ignore
+    private _controlRef: FlyControls;
+
+    private _chunkSize: number = 400;
     private _terrianTypes: any[] = new Array<TerrianType>(); 
-    private _terrian: THREE.Mesh[][] = new Array<Array<THREE.Mesh>>;
+    private _terrian: Map<string, THREE.Mesh> = new Map();
+
+    //Render distance options
+    private _MaxViewDst: number = 500;
+    private _ChunksVisableInViewDst: number = 1;
 
     public get scene(){
         return this._scene;
+    }
+
+    public set controlRef(controlRef: FlyControls){
+        this._controlRef = controlRef;
     }
 
     constructor(){
@@ -28,15 +41,17 @@ export default class World{
 
         this.Lighthing();
 
+        this._ChunksVisableInViewDst = Math.round(this._MaxViewDst / this._chunkSize);
+
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 256;            //At what scale do you want to generate noise
-        noiseParams.noiseType = "simplex";  //What type of noise
-        noiseParams.persistence = 3;        //Controls the amplitude of octaves
-        noiseParams.octaves = 4;            //The amount of noise maps used
-        noiseParams.lacunarity = 5;         //Controls frequency of octaves
-        noiseParams.exponentiation = 1;     //???
-        noiseParams.seed = Math.random();            // Math.random(); //Generate a random seed
+        noiseParams.scale = 256;                //At what scale do you want to generate noise
+        noiseParams.noiseType = "simplex";      //What type of noise
+        noiseParams.persistence = 3;            //Controls the amplitude of octaves
+        noiseParams.octaves = 4;                //The amount of noise maps used
+        noiseParams.lacunarity = 5;             //Controls frequency of octaves
+        noiseParams.exponentiation = 1;         //???
+        noiseParams.seed = Math.random();       // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
 
@@ -52,31 +67,30 @@ export default class World{
             { name: "Snow",         height: 1.0,    color: [255, 255, 255, 255]}
         );
 
-        const texture = new THREE.TextureLoader().load('./assets/land.jpg');
+        // const texture = new THREE.TextureLoader().load('./assets/land.jpg');
 
-        //Later maybe have different materials for different terrian types?
-        let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: false,
-            color: 0x808080,
-            side: THREE.BackSide,
-            map: texture
-        });
-        phongMaterial.flatShading = true;
+        // //Later maybe have different materials for different terrian types?
+        // let phongMaterial = new THREE.MeshPhongMaterial({
+        //     wireframe: false,
+        //     color: 0x808080,
+        //     side: THREE.BackSide,
+        //     map: texture
+        // });
+        // phongMaterial.flatShading = true;
 
-        //--------------------------------------------- CHUNK CREATION ----------------------------------------
-        let resolution = 256; //256, 128, 64, 32, 16, 8
-        let chunkSize = 400;
-        let chunk = new THREE.Mesh(
-            new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
-            phongMaterial
-        );
-        chunk.rotation.x = degToRad(90);
+        // //--------------------------------------------- CHUNK CREATION ----------------------------------------
+        // let resolution = 256; //256, 128, 64, 32, 16, 8
+        // let chunk = new THREE.Mesh(
+        //     new THREE.PlaneGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
+        //     phongMaterial
+        // );
+        // chunk.position.add(new THREE.Vector3(0,0,0));
+        // chunk.rotation.x = degToRad(90);
         
-        const heightMap = this.GenerateHeightMap(chunk);
-        this.ApplyHeightMap(chunk, heightMap);
+        // const heightMap = this.GenerateHeightMap(chunk);
+        // this.ApplyHeightMap(chunk, heightMap);
         
-        this._scene.remove(chunk);
-        this._scene.add( chunk );
+        //this._scene.add( chunk );
         //-----------------------------------------------------------------------------------------------------
 
         //SET DEBUG MENU VALUES
@@ -139,9 +153,9 @@ export default class World{
         const colorData = new Uint8Array( 4 * size );
         const heightData = new Array<Number>( size );
         
-        for(let y = 0; y < height; y++)
+        for(let y = chunkRef.position.z; y < height + chunkRef.position.z; y++)
         {
-            for(let x = 0; x < width; x++)
+            for(let x = chunkRef.position.x; x < width + chunkRef.position.x; x++)
             {
                 const index = (y * width + x);
                 const stride = index * 4;
@@ -291,7 +305,54 @@ export default class World{
         this._scene.add( chunk );
     }
 
-    public updateEntities(deltaTime: number){
+    public LoadAndUnload(){
+        let playerChunkIndex: THREE.Vector2 = new THREE.Vector2(
+            this._controlRef.object.position.x / this._chunkSize,
+            this._controlRef.object.position.y / this._chunkSize
+        );
+        playerChunkIndex.round();
 
+        for(let yOffset = -this._ChunksVisableInViewDst; yOffset <= this._ChunksVisableInViewDst; yOffset++){
+            for(let xOffset = -this._ChunksVisableInViewDst; xOffset <= this._ChunksVisableInViewDst; xOffset++){
+
+                let viewedChunkCoord : THREE.Vector2 = new THREE.Vector2(xOffset + playerChunkIndex.x, yOffset + playerChunkIndex.y);
+                let viewedChunkCoordkString : string = viewedChunkCoord.x + "," + viewedChunkCoord.y;
+
+                if(!this._terrian.has(viewedChunkCoordkString))
+                {
+                    let phongMaterial = new THREE.MeshPhongMaterial({
+                        wireframe: false,
+                        color: 0x808080,
+                        side: THREE.BackSide,
+                    });
+                    phongMaterial.flatShading = true;
+
+                    let resolution = 256;
+                    let chunk = new THREE.Mesh(
+                        new THREE.PlaneGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
+                        phongMaterial
+                    );
+                    //chunk.position.add(new THREE.Vector3((this._chunkSize * xOffset) + 25 * xOffset, 0, (this._chunkSize * yOffset) + 25 * yOffset));
+                    chunk.position.add(new THREE.Vector3(this._chunkSize * viewedChunkCoord.x, 0, this._chunkSize * viewedChunkCoord.y));
+                    chunk.rotation.x = degToRad(90);
+                    
+                    this._scene.add( chunk );
+
+                    this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
+
+                    console.log("New chunk");
+                }
+                else{
+                    //console.log("Chunk already exist");
+                }
+            }
+        }
+
+        //console.log(this._terrian.entries());
+        //console.log("Does terrian have entry (-1, -1): " + this._terrian.has(new THREE.Vector2(0,0)));
+    }
+
+    public updateEntities(deltaTime: number){
+        this.LoadAndUnload();
     }
 }
