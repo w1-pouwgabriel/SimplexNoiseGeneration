@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { Vector2, Vector3 } from "three";
-import { degToRad } from "./Utisl";
+import { Vector2 } from "three";
 
 export default class Chunk{
 
@@ -51,7 +50,7 @@ export default class Chunk{
 
     public UpdateChunkVisibility(maxViewDst: number, ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
-        const isVisible = distanceToClosestPoint <= maxViewDst * 0.8;
+        const isVisible = distanceToClosestPoint <= maxViewDst * 0.9;
         
         this.SetVisible(isVisible);
     }

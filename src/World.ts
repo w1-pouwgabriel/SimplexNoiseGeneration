@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
-import { degToRad, reverseNumberInRange } from "./Utisl";
+import { reverseNumberInRange } from "./Utisl";
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 import Chunk from "./Chunk";
 
@@ -17,13 +17,13 @@ export default class World{
     //@ts-ignore
     private _controlRef: FlyControls;
 
-    private _chunkSize: number = 100;
+    private _chunkSize: number = 200;
     private _terrianTypes: any[] = new Array<TerrianType>(); 
     private _terrian: Map<string, Chunk> = new Map();
 
     //Render distance options
     private _MaxViewDst: number = 300;
-    private _ChunksVisableInViewDst: number = 1;
+    private _ChunksVisableInViewDst: number;
 
     private _LoadingAndRenderingCube : THREE.Mesh = new THREE.Mesh();
 
@@ -289,7 +289,6 @@ export default class World{
             new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
             phongMaterial
         );
-        chunk.rotation.x = degToRad(90);
         
         const heightMap = this.GenerateHeightMap(chunk, new THREE.Vector2(1,1));
         this.ApplyHeightMap(chunk, heightMap);
