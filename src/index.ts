@@ -11,6 +11,18 @@ export default class Game {
     private _Controls: FlyControls;
     
     private _timer: THREE.Clock = new Clock(true);
+
+    public get Graphics(){
+        return this._Graphics;
+    }
+
+    public get World(){
+        return this._World;
+    }
+
+    public get Controls(){
+        return this._Controls;
+    }
     
     constructor() {
         this._World = new World();

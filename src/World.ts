@@ -2,6 +2,7 @@ import * as THREE from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { degToRad, reverseNumberInRange } from "./Utisl";
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
+import Chunk from "./Chunk";
 
 interface TerrianType {
     name: string,
@@ -18,10 +19,10 @@ export default class World{
 
     private _chunkSize: number = 400;
     private _terrianTypes: any[] = new Array<TerrianType>(); 
-    private _terrian: Map<string, THREE.Mesh> = new Map();
+    private _terrian: Map<string, Chunk> = new Map();
 
     //Render distance options
-    private _MaxViewDst: number = 500;
+    private _MaxViewDst: number = 900;
     private _ChunksVisableInViewDst: number = 1;
 
     public get scene(){
@@ -320,35 +321,18 @@ export default class World{
 
                 if(!this._terrian.has(viewedChunkCoordkString))
                 {
-                    let phongMaterial = new THREE.MeshPhongMaterial({
-                        wireframe: false,
-                        color: 0x808080,
-                        side: THREE.BackSide,
-                    });
-                    phongMaterial.flatShading = true;
-
-                    let resolution = 256;
-                    let chunk = new THREE.Mesh(
-                        new THREE.PlaneGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
-                        phongMaterial
-                    );
-                    //chunk.position.add(new THREE.Vector3((this._chunkSize * xOffset) + 25 * xOffset, 0, (this._chunkSize * yOffset) + 25 * yOffset));
-                    chunk.position.add(new THREE.Vector3(this._chunkSize * viewedChunkCoord.x, 0, this._chunkSize * viewedChunkCoord.y));
-                    chunk.rotation.x = degToRad(90);
+                    let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize);
                     
-                    this._scene.add( chunk );
-
+                    this._scene.add( chunk.ChunkObject )
                     this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
-
-                    console.log("New chunk");
                 }
                 else{
                     //console.log("Chunk already exist");
+                    this._terrian.get(viewedChunkCoordkString)?.Update(this._MaxViewDst, this._controlRef.object.position);
                 }
             }
         }
 
-        //console.log(this._terrian.entries());
         //console.log("Does terrian have entry (-1, -1): " + this._terrian.has(new THREE.Vector2(0,0)));
     }
 

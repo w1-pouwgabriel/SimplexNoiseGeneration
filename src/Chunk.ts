@@ -6,7 +6,6 @@ export default class Chunk{
 
     private _ChunkObject : THREE.Mesh = new THREE.Mesh();
     private _Position: Vector2 = new Vector2();
-    private _AABB: THREE.Box3 = new THREE.Box3();
     private _IsVisible: boolean = false;
 
     public get IsVisible() : boolean{
@@ -19,39 +18,29 @@ export default class Chunk{
 
     constructor(coords: Vector2, size: number){
         this._Position = new THREE.Vector2(coords.x * size, coords.y * size);
-
-        let max : Vector2 = new Vector2(1,1);
-        this._AABB = new THREE.Box3(
-            new Vector3(this._Position.x, this._Position.y,  1.0),  //Min
-            new Vector3((max.multiplyScalar(size).x / 10.0, max.multiplyScalar(size).y / 10.0, 1.0) //Max
-        ));
         
-        const position3D : Vector3 = new Vector3(this._Position.x, 0, this._Position.y);
-        const texture = new THREE.TextureLoader().load('./assets/land.jpg'); //Defualy material to fall back on
-
-        //Later maybe have different materials for different terrian types?
         let phongMaterial = new THREE.MeshPhongMaterial({
             wireframe: false,
             color: 0x808080,
             side: THREE.BackSide,
-            map: texture
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 256; //256, 128, 64, 32, 16, 8
-        let chunkSize = 400;
-        let chunk = new THREE.Mesh(
-            new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
+        let resolution = 256;
+        this._ChunkObject = new THREE.Mesh(
+            new THREE.PlaneGeometry(size, size, resolution, resolution),
             phongMaterial
         );
-        chunk.position.copy(position3D);
-        chunk.rotation.x = degToRad(90);
+        //chunk.position.add(new THREE.Vector3((this._chunkSize * xOffset) + 25 * xOffset, 0, (this._chunkSize * yOffset) + 25 * yOffset));
+        this._ChunkObject.position.add(new THREE.Vector3(coords.x * size, 0, coords.y * size));
+        this._ChunkObject.rotation.x = degToRad(90);
+        this._ChunkObject.visible = this._IsVisible;
     }
 
-    public Update(maxViewDst: number){
-        const position3D : Vector3 = new Vector3(this._Position.x, this._Position.y, 1);
-        const viewDstFromNearestEdge = Math.sqrt(this._AABB.distanceToPoint(position3D));
-        const isVisible = viewDstFromNearestEdge <= maxViewDst;
+    public Update(maxViewDst: number, cameraPosition: THREE.Vector3){
+        let distance = (cameraPosition.x - this._Position.x) * (cameraPosition.x - this._Position.x) + (cameraPosition.z - this._Position.y) * (cameraPosition.z - this._Position.y);  
+        const isVisible = distance <=  maxViewDst * maxViewDst;
+        
         this.SetVisible(isVisible);
     }
 
