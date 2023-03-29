@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Vector2 } from "three";
+import { degToRad } from "./Utisl";
 
 export default class Chunk{
 
@@ -30,7 +31,7 @@ export default class Chunk{
         });
         phongMaterial.flatShading = true;
 
-        let resolution = 16; //256, 128, 64, 32
+        let resolution = 32; //256, 128, 64, 32
         this._ChunkObject = new THREE.Mesh(
             new THREE.PlaneGeometry(size, size, resolution, resolution),
             phongMaterial
@@ -50,7 +51,7 @@ export default class Chunk{
 
     public UpdateChunkVisibility(maxViewDst: number, ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
-        const isVisible = distanceToClosestPoint <= maxViewDst * 0.9;
+        const isVisible = distanceToClosestPoint <= maxViewDst * 0.8;
         
         this.SetVisible(isVisible);
     }

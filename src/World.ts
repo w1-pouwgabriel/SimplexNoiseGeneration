@@ -22,7 +22,7 @@ export default class World{
     private _terrian: Map<string, Chunk> = new Map();
 
     //Render distance options
-    private _MaxViewDst: number = 300;
+    private _MaxViewDst: number = 2500;
     private _ChunksVisableInViewDst: number;
 
     private _LoadingAndRenderingCube : THREE.Mesh = new THREE.Mesh();
@@ -48,7 +48,7 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 256;                //At what scale do you want to generate noise
+        noiseParams.scale = 1024;                //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";      //What type of noise
         noiseParams.persistence = 3;            //Controls the amplitude of octaves
         noiseParams.octaves = 4;                //The amount of noise maps used
@@ -76,14 +76,14 @@ export default class World{
             side: THREE.DoubleSide,
         });
 
-        let resolution = 16; //256, 128, 64, 32
+        let resolution = 2; //256, 128, 64, 32
         this._LoadingAndRenderingCube = new THREE.Mesh(
             new THREE.BoxGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
             phongMaterial
         );
         this._LoadingAndRenderingCube.position.add(new THREE.Vector3(0,0,0));
 
-        this.scene.add(this._LoadingAndRenderingCube);
+        //this.scene.add(this._LoadingAndRenderingCube);
 
         //SET DEBUG MENU VALUES
         {
@@ -102,6 +102,8 @@ export default class World{
     private ApplyHeightMap(chunkRef: THREE.Mesh, heightMap: Array<Number>){
         //@ts-ignore
         let vertices = chunkRef.geometry.attributes.position["array"];
+
+        vertices[2] = -500;
 
         // +1 because this is what three js always does
         //@ts-ignore
@@ -124,7 +126,7 @@ export default class World{
                     vertices[vertexIndex + 2] = 0;
                 }else{
                     //@ts-ignore
-                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 77.0;
+                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 2000.0;
                 }
                 
             }
@@ -140,6 +142,9 @@ export default class World{
         let width = chunkRef.geometry.parameters.widthSegments + 1;
         //@ts-ignore
         let height = chunkRef.geometry.parameters.heightSegments + 1;
+
+        //console.log(width + ":" + height)
+        //console.log(mapCoordinate)
 
         const size = width * height;
         const colorData = new Uint8Array( 4 * size );
@@ -161,7 +166,11 @@ export default class World{
                 let Mountain2: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Mountain2");
                 let Snow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Snow");
 
-                let heightValue = this._noise.Get(x * mapCoordinate.x, y * mapCoordinate.y);
+                let noiseCoordinate : THREE.Vector2 = new THREE.Vector2(x + mapCoordinate.x * width, y + mapCoordinate.y * height); // + y * mapCoordinate.y);
+
+                //console.log(noiseCoordinate);
+
+                let heightValue = this._noise.Get(noiseCoordinate.x , noiseCoordinate.y);
                 
                 if(heightValue <= WaterDeep.height){
                     colorData[ stride ] = WaterDeep.color[0];
@@ -216,6 +225,10 @@ export default class World{
             }
         }
 
+        if (mapCoordinate.x == 0 && mapCoordinate.y == 0 ){
+            chunkRef.position.sub(new THREE.Vector3(0,0,0));
+        }
+
         // used the buffer to create a DataTexture
         const texture = new THREE.DataTexture( colorData, width, height);
         texture.needsUpdate = true;
@@ -250,6 +263,7 @@ export default class World{
         }
 
         this._scene.clear();
+        this._terrian.clear();
 
         this.Lighthing();
 
@@ -268,32 +282,32 @@ export default class World{
         else{
             noiseParams.seed = parseFloat(noiseSeed.value);
         }
-                  
 
         this._noise = new NoiseGenerator(noiseParams);
 
-        const texture = new THREE.TextureLoader().load('./assets/land.jpg');
-
-        //Later maybe have different materials for different terrian types?
-        let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: wireframe.checked,
-            color: 0x808080,
-            side: THREE.BackSide,
-            map: texture
-        });
-        phongMaterial.flatShading = true;
-
-        let resolution = parseInt(noiseScale.value);
-        let chunkSize = 400;
-        let chunk = new THREE.Mesh(
-            new THREE.PlaneGeometry(chunkSize, chunkSize, resolution, resolution),
-            phongMaterial
+        //Create some terriantypes
+        this._terrianTypes.push(
+            { name: "WaterDeep",    height: -0.5,   color: [0, 0, 126, 255]},
+            { name: "WaterShallow", height: 0.0,    color: [0, 0, 255, 255]},
+            { name: "Sand",         height: 0.2,    color: [255, 255, 0, 255]},
+            { name: "Land1",        height: 0.4,    color: [0, 255, 0, 255]},
+            { name: "Land2",        height: 0.6,    color: [0, 126, 0, 255]},
+            { name: "Mountain1",    height: 0.7,    color: [255, 150, 0, 255]},
+            { name: "Mountain2",    height: 0.9,    color: [150, 75, 0, 255]},
+            { name: "Snow",         height: 1.0,    color: [255, 255, 255, 255]}
         );
-        
-        const heightMap = this.GenerateHeightMap(chunk, new THREE.Vector2(1,1));
-        this.ApplyHeightMap(chunk, heightMap);
-        
-        this._scene.add( chunk );
+
+        //SET DEBUG MENU VALUES
+        {
+            let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+            noiseScale.value = noiseParams.scale.toString();
+
+            let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
+            noiseSeed.value = noiseParams.seed.toString();
+
+            let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
+            noiseZoom.value = "1";
+        }
     }
 
     public LoadAndUnload(){
@@ -302,8 +316,6 @@ export default class World{
             this._controlRef.object.position.y / this._chunkSize
         );
         playerChunkIndex.round();
-
-        console.log(this._controlRef.object.position);
 
         let cubePos = this._controlRef.object.position.clone();
         cubePos.z = -150;
@@ -319,25 +331,22 @@ export default class World{
                 {
                     let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize);
 
-                    // const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
-                    // this.ApplyHeightMap(chunk, heightMap);
+                    const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
+                    this.ApplyHeightMap(chunk.ChunkObject, heightMap);
 
                     const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
                     box.setFromObject(chunk.ChunkObject);
-                    this._scene.add( box );
+                    //this._scene.add( box );
                     
                     this._scene.add( chunk.ChunkObject )
                     this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
                 }
                 else{
-                    //console.log("Chunk already exist");
 
                     this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._MaxViewDst, cubePos);
                 }
             }
         }
-
-        //console.log("Does terrian have entry (-1, -1): " + this._terrian.has(new THREE.Vector2(0,0)));
     }
 
     public updateEntities(deltaTime: number){
