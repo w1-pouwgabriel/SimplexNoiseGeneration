@@ -12,7 +12,10 @@ interface TerrianType {
 
 export default class World{
     private _scene: THREE.Scene;
+
+    //Controllable settings
     private _noise: NoiseGenerator;
+    private _isWireFrame: boolean = false;
 
     //@ts-ignore
     private _controlRef: FlyControls;
@@ -48,7 +51,7 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 1024;                //At what scale do you want to generate noise
+        noiseParams.scale = 2048;                //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";      //What type of noise
         noiseParams.persistence = 3;            //Controls the amplitude of octaves
         noiseParams.octaves = 4;                //The amount of noise maps used
@@ -267,9 +270,11 @@ export default class World{
 
         this.Lighthing();
 
+        this._isWireFrame = wireframe.checked;
+
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = parseInt(noiseScale.value) / parseFloat(noiseZoom.value);
+        noiseParams.scale = Math.round(parseFloat(noiseScale.value) / parseFloat(noiseZoom.value));
         noiseParams.noiseType = "simplex";                       
         noiseParams.persistence = 3;                             
         noiseParams.octaves = 4;                                 
@@ -299,14 +304,14 @@ export default class World{
 
         //SET DEBUG MENU VALUES
         {
-            let noiseScale: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
-            noiseScale.value = noiseParams.scale.toString();
+            let noiseScaleUI: HTMLInputElement = document.getElementById("noiseScale") as HTMLInputElement;
+            noiseScaleUI.value = noiseParams.scale.toString();
 
-            let noiseSeed = document.getElementById("noiseSeed") as HTMLInputElement;
-            noiseSeed.value = noiseParams.seed.toString();
+            let noiseSeedUI = document.getElementById("noiseSeed") as HTMLInputElement;
+            noiseSeedUI.value = noiseParams.seed.toString();
 
-            let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
-            noiseZoom.value = "1";
+            let noiseZoomUI = document.getElementById("noiseZoom") as HTMLInputElement;
+            noiseZoomUI.value = noiseZoom.value;
         }
     }
 
@@ -329,21 +334,21 @@ export default class World{
 
                 if(!this._terrian.has(viewedChunkCoordkString))
                 {
-                    let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize);
+                    let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize, this._isWireFrame);
 
                     const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
                     this.ApplyHeightMap(chunk.ChunkObject, heightMap);
 
-                    const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
-                    box.setFromObject(chunk.ChunkObject);
-                    //this._scene.add( box );
+                    // const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
+                    // box.setFromObject(chunk.ChunkObject);
+                    // this._scene.add( box );
                     
                     this._scene.add( chunk.ChunkObject )
                     this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
                 }
                 else{
 
-                    this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._MaxViewDst, cubePos);
+                    this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._MaxViewDst, this._controlRef.object.position);
                 }
             }
         }

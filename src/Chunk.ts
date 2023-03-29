@@ -21,11 +21,11 @@ export default class Chunk{
         return this._Bounds;
     }
 
-    constructor(coords: Vector2, size: number){
+    constructor(coords: Vector2, size: number, isWireFrame: boolean){
         this._Position = new THREE.Vector2(coords.x * size, coords.y * size);
         
         let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: false,
+            wireframe: isWireFrame,
             color: 0x808080,
             side: THREE.BackSide,
         });
