@@ -102,7 +102,7 @@ export default class World{
     }
 
     //Offset the vertices in the z
-    private ApplyHeightMap(chunkRef: THREE.Mesh, heightMap: Array<Number>){
+    private ApplyHeightMap(chunkRef: THREE.Mesh, heightMap: Array<number>){
         //@ts-ignore
         let vertices = chunkRef.geometry.attributes.position["array"];
 
@@ -120,7 +120,7 @@ export default class World{
                 //We need to add 3 since each vertex is
                 //(x, y, z)
                 let index = y * width + x;
-                let heightDataIndex = reverseNumberInRange(y, 0, height);
+                let heightDataIndex : number = reverseNumberInRange(y, 0, height);
                 heightDataIndex = heightDataIndex * width + x;
                 const vertexIndex = index * 3;
 
@@ -128,8 +128,16 @@ export default class World{
                     //@ts-ignore
                     vertices[vertexIndex + 2] = 0;
                 }else{
-                    //@ts-ignore
-                    vertices[vertexIndex + 2] = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 2000.0;
+
+                    let heightValue = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 2000.0;
+                    if(!isNaN(heightValue)) {
+                        //@ts-ignore
+                        vertices[vertexIndex + 2] = heightValue;
+                      }
+                      else {
+                        vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
+                      }
+
                 }
                 
             }
@@ -139,7 +147,7 @@ export default class World{
         //chunkRef.geometry.computeVertexNormals();
     }
 
-    private GenerateHeightMap(chunkRef: THREE.Mesh, mapCoordinate: THREE.Vector2) : Array<Number>{
+    private GenerateHeightMap(chunkRef: THREE.Mesh, mapCoordinate: THREE.Vector2) : Array<number>{
         // create a buffer with color data
         //@ts-ignore
         let width = chunkRef.geometry.parameters.widthSegments + 1;
@@ -151,7 +159,7 @@ export default class World{
 
         const size = width * height;
         const colorData = new Uint8Array( 4 * size );
-        const heightData = new Array<Number>( size );
+        const heightData = new Array<number>( size );
         
         for(let y = 0; y < height; y++)
         {
