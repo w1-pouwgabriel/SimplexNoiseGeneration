@@ -2,7 +2,9 @@ import * as THREE from "three";
 import NoiseGenerator, { NoiseParams } from "./Noise"
 import { reverseNumberInRange } from "./Utisl";
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
+
 import Chunk from "./Chunk";
+import { LODInfo } from "./LOD"
 
 interface TerrianType {
     name: string,
@@ -23,6 +25,7 @@ export default class World{
     private _chunkSize: number = 200;
     private _terrianTypes: any[] = new Array<TerrianType>(); 
     private _terrian: Map<string, Chunk> = new Map();
+    private _LODInfo: Array<LODInfo> = new Array();
 
     //Render distance options
     private _MaxViewDst: number = 2500;
@@ -46,6 +49,14 @@ export default class World{
         window.scene = this._scene;
 
         this.Lighthing();
+
+        this._LODInfo.push(
+            { Lod: 1, visibleDistanceThreshold: 200 },
+            { Lod: 2, visibleDistanceThreshold: 450 },
+            { Lod: 3, visibleDistanceThreshold: 900 },
+            { Lod: 4, visibleDistanceThreshold: 1800 },
+        );
+        this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].visibleDistanceThreshold;
 
         this._ChunksVisableInViewDst = Math.round(this._MaxViewDst / this._chunkSize);
 
@@ -106,14 +117,12 @@ export default class World{
         //@ts-ignore
         let vertices = chunkRef.geometry.attributes.position["array"];
 
-        vertices[2] = -500;
-
         // +1 because this is what three js always does
         //@ts-ignore
         let width = chunkRef.geometry.parameters.widthSegments + 1;
         //@ts-ignore
         let height = chunkRef.geometry.parameters.heightSegments + 1;
-
+        
         for(let y = 0; y < height; y++){
             for (let x = 0; x < width; x++) {
 
@@ -342,21 +351,21 @@ export default class World{
 
                 if(!this._terrian.has(viewedChunkCoordkString))
                 {
-                    let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize, this._isWireFrame);
+                    let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize, this._isWireFrame, this._LODInfo, this.scene);
 
-                    const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
-                    this.ApplyHeightMap(chunk.ChunkObject, heightMap);
+                    // const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
+                    // this.ApplyHeightMap(chunk.ChunkObject, heightMap);
 
                     // const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
                     // box.setFromObject(chunk.ChunkObject);
                     // this._scene.add( box );
-                    
-                    this._scene.add( chunk.ChunkObject )
+
+                    //this._scene.add( chunk.ChunkObject )
                     this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
                 }
                 else{
 
-                    this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._MaxViewDst, this._controlRef.object.position);
+                    this._terrian.get(viewedChunkCoordkString)?.UpdateChunkVisibility(this._controlRef.object.position);
                 }
             }
         }

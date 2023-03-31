@@ -42,4 +42,8 @@ export function clamp(x: number, a: number, b: number): number {
 
   export function reverseNumberInRange(num: number, min: number, max: number) : number{
     return (max + min) - num;
+  };
+
+  export function nearestPowerOf2(n : number) : number {
+    return 1 << 31 - Math.clz32(n);
   }

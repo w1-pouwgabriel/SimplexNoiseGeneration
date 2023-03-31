@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Vector2 } from "three";
-import { degToRad } from "./Utisl";
+import ChunkLOD, { LODInfo } from "./LOD"
 
 export default class Chunk{
 
@@ -8,6 +8,11 @@ export default class Chunk{
     private _Bounds: THREE.Box3 = new THREE.Box3();
     private _Position: Vector2 = new Vector2();
     private _IsVisible: boolean = false;
+
+    private _LODs: Array<ChunkLOD> = new Array();
+    private _LODInfo: Array<LODInfo> = new Array();
+
+    private _PrevicousLODIndex: number = -1;
 
     public get IsVisible() : boolean{
         return this.IsVisible;
@@ -21,26 +26,21 @@ export default class Chunk{
         return this._Bounds;
     }
 
-    constructor(coords: Vector2, size: number, isWireFrame: boolean){
+    constructor(coords: Vector2, size: number, isWireFrame: boolean, detailLevels: Array<LODInfo>, sceneRef: THREE.Scene){
         this._Position = new THREE.Vector2(coords.x * size, coords.y * size);
+
+        this._LODInfo = detailLevels;
+
+        for(let i = 0; i < detailLevels.length; i++){
+            let LOD : ChunkLOD = new ChunkLOD(i, size, isWireFrame);
+
+            LOD.ChunkPosition = new THREE.Vector3(this._Position.x, this._Position.y, 0);
+
+            this._LODs.push(LOD);
+
+            sceneRef.add(LOD._Chunk);
+        }
         
-        let phongMaterial = new THREE.MeshPhongMaterial({
-            wireframe: isWireFrame,
-            color: 0x808080,
-            side: THREE.BackSide,
-        });
-        phongMaterial.flatShading = true;
-
-        let resolution = 32; //256, 128, 64, 32
-        this._ChunkObject = new THREE.Mesh(
-            new THREE.PlaneGeometry(size, size, resolution, resolution),
-            phongMaterial
-        );
-        //chunk.position.add(new THREE.Vector3((this._chunkSize * xOffset) + 25 * xOffset, 0, (this._chunkSize * yOffset) + 25 * yOffset));
-        this._ChunkObject.position.add(new THREE.Vector3(this._Position.x, this._Position.y, 0));
-        //this._ChunkObject.rotation.x = degToRad(90);
-        this._ChunkObject.visible = this._IsVisible;
-
         let min : THREE.Vector3 = new THREE.Vector3(this._Position.x - size, this._Position.y - size, 0.0);
         let max : THREE.Vector3 = new THREE.Vector3(this._Position.x + size, this._Position.y + size, 1.0);
         this._Bounds = new THREE.Box3(
@@ -49,9 +49,30 @@ export default class Chunk{
         );
     }
 
-    public UpdateChunkVisibility(maxViewDst: number, ObjectPosition: THREE.Vector3){
+    public UpdateChunkVisibility(ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
-        const isVisible = distanceToClosestPoint <= maxViewDst * 0.8;
+        const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].visibleDistanceThreshold * 0.8;
+
+        if(isVisible){
+            let lodIndex = 0;
+
+            for(let i = 0; this._LODInfo.length - 1; i++){
+                if(distanceToClosestPoint > this._LODInfo[i].visibleDistanceThreshold){
+                    lodIndex = i + 1;
+                }else{
+                    break;
+                }
+            }
+
+            if(lodIndex != this._PrevicousLODIndex){
+                let currentLOD : ChunkLOD = this._LODs[lodIndex];
+
+                if(currentLOD.HasMesh){
+                    this._PrevicousLODIndex = lodIndex;
+                    this._ChunkObject = currentLOD._Chunk;
+                }
+            }
+        }
         
         this.SetVisible(isVisible);
     }
