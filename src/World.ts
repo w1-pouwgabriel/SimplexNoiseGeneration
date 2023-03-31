@@ -5,6 +5,7 @@ import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 
 import Chunk from "./Chunk";
 import { LODInfo } from "./LOD"
+import { Resolver } from "dns";
 
 interface TerrianType {
     name: string,
@@ -51,18 +52,18 @@ export default class World{
         this.Lighthing();
 
         this._LODInfo.push(
-            { Lod: 1, visibleDistanceThreshold: 200 },
-            { Lod: 2, visibleDistanceThreshold: 450 },
-            { Lod: 3, visibleDistanceThreshold: 900 },
-            { Lod: 4, visibleDistanceThreshold: 1800 },
+            { Lod: 1, VisibleDistanceThreshold: 200, Resolution: 32 },
+            { Lod: 2, VisibleDistanceThreshold: 450, Resolution: 16 },
+            { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 8 },
+            { Lod: 4, VisibleDistanceThreshold: 1800, Resolution: 4 },
         );
-        this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].visibleDistanceThreshold;
+        this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
 
         this._ChunksVisableInViewDst = Math.round(this._MaxViewDst / this._chunkSize);
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 2048;                //At what scale do you want to generate noise
+        noiseParams.scale = 2048;               //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";      //What type of noise
         noiseParams.persistence = 3;            //Controls the amplitude of octaves
         noiseParams.octaves = 4;                //The amount of noise maps used

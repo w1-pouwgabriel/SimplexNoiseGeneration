@@ -3,7 +3,8 @@ import {nearestPowerOf2} from "./Utisl"
 
 export interface LODInfo{
     Lod: number;
-    visibleDistanceThreshold: number;
+    VisibleDistanceThreshold: number;
+    Resolution: number;
 }
 
 export default class ChunkLOD
@@ -21,7 +22,7 @@ export default class ChunkLOD
         return this._hasMesh;
     }
 
-    constructor(lodLevel: number, size: number, isWireframe: boolean){
+    constructor(lodLevel: number, size: number, isWireframe: boolean, resolution: number){
         this._LODLevel = lodLevel;
         this._hasRequestedMesh = false;
         this._hasMesh = false;
@@ -32,8 +33,7 @@ export default class ChunkLOD
             side: THREE.BackSide,
         });
         phongMaterial.flatShading = true;
-
-        let resolution = nearestPowerOf2(32 / lodLevel);
+        
         this._Chunk = new THREE.Mesh(
             new THREE.PlaneGeometry(size, size, resolution, resolution),
             phongMaterial

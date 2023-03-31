@@ -31,12 +31,30 @@ export default class Chunk{
 
         this._LODInfo = detailLevels;
 
+        let phongMaterial = new THREE.MeshPhongMaterial({
+            wireframe: isWireFrame,
+            color: 0x808080,
+            side: THREE.DoubleSide,
+        });
+        
+        this._ChunkObject = new THREE.Mesh(
+            new THREE.PlaneGeometry(size, size, 4, 4),
+            phongMaterial
+        );
+        this._ChunkObject.visible = false;
+
+        sceneRef.add(this._ChunkObject);
+
         for(let i = 0; i < detailLevels.length; i++){
-            let LOD : ChunkLOD = new ChunkLOD(i, size, isWireFrame);
+            let LOD : ChunkLOD = new ChunkLOD(i, size, isWireFrame, detailLevels[i].Resolution);
 
             LOD.ChunkPosition = new THREE.Vector3(this._Position.x, this._Position.y, 0);
 
             this._LODs.push(LOD);
+
+            const box = new THREE.BoxHelper( LOD._Chunk, 0xff0000 );
+            box.setFromObject(LOD._Chunk);
+            sceneRef.add( box );
 
             sceneRef.add(LOD._Chunk);
         }
@@ -51,13 +69,14 @@ export default class Chunk{
 
     public UpdateChunkVisibility(ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
-        const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].visibleDistanceThreshold * 0.8;
+        const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold * 0.8;
 
         if(isVisible){
             let lodIndex = 0;
 
-            for(let i = 0; this._LODInfo.length - 1; i++){
-                if(distanceToClosestPoint > this._LODInfo[i].visibleDistanceThreshold){
+            for(let i = 0; this._LODInfo.length; i++){
+                if(distanceToClosestPoint > this._LODInfo[i].VisibleDistanceThreshold){
+                    this._LODs[lodIndex]._Chunk.visible = false; // Not the LOD in range so make sure its not being drawn
                     lodIndex = i + 1;
                 }else{
                     break;
