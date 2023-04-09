@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Vector2 } from "three";
 import ChunkLOD, { LODInfo } from "./LOD"
+import { reverseNumberInRange } from "./Utisl";
 
 export default class Chunk{
 
@@ -14,6 +15,8 @@ export default class Chunk{
 
     private _PrevicousLODIndex: number = -1;
 
+    private _HeightMap: Array<number> = new Array();
+
     public get IsVisible() : boolean{
         return this.IsVisible;
     }
@@ -24,6 +27,12 @@ export default class Chunk{
 
     public get Bound(){
         return this._Bounds;
+    }
+
+    public set HeightMap(NewHeightMap: Array<number>){
+        this._HeightMap = NewHeightMap;
+
+        this.ApplyHeightMap();
     }
 
     constructor(coords: Vector2, size: number, isWireFrame: boolean, detailLevels: Array<LODInfo>, sceneRef: THREE.Scene){
@@ -38,7 +47,7 @@ export default class Chunk{
         });
         
         this._ChunkObject = new THREE.Mesh(
-            new THREE.PlaneGeometry(size, size, 4, 4),
+            new THREE.PlaneGeometry(size, size, detailLevels[0].Resolution, detailLevels[0].Resolution),
             phongMaterial
         );
         this._ChunkObject.visible = false;
@@ -52,10 +61,6 @@ export default class Chunk{
 
             this._LODs.push(LOD);
 
-            const box = new THREE.BoxHelper( LOD._Chunk, 0xff0000 );
-            box.setFromObject(LOD._Chunk);
-            sceneRef.add( box );
-
             sceneRef.add(LOD._Chunk);
         }
         
@@ -67,17 +72,67 @@ export default class Chunk{
         );
     }
 
+    private ApplyHeightMap(){
+        for(let i = 0; i < this._LODInfo.length; i++){
+            let LODChunkRef : THREE.Mesh = this._LODs[i]._Chunk;
+            
+            let magicNumber = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution
+
+            //@ts-ignore
+            let vertices = LODChunkRef.geometry.attributes.position["array"];
+            //@ts-ignore
+            let width = LODChunkRef.geometry.parameters.widthSegments + 1;
+            //@ts-ignore
+            let height = LODChunkRef.geometry.parameters.heightSegments + 1;
+            
+            for(let y = 0; y < height; y++){
+                for (let x = 0; x < width; x++) {
+
+                    //We need to add 3 since each vertex is
+                    //(x, y, z)
+                    let index = y * width + x;
+                    const vertexIndex = index * 3;
+
+                    let heightDataIndex : number = reverseNumberInRange(y, 0, width);
+                    heightDataIndex = heightDataIndex * width + x;
+
+                    if(this._HeightMap[heightDataIndex] <= 0.0){
+                        //@ts-ignore
+                        vertices[vertexIndex + 2] = 0;
+                    }else{
+
+                        let heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 2000.0;
+
+                        if(!isNaN(heightValue)) {
+                            //@ts-ignore
+                            vertices[vertexIndex + 2] = heightValue;
+                        }
+                        else {
+                            vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
+                        }
+
+                    }            
+                }
+            }
+            
+            //Recalculate the normals
+            //chunkRef.geometry.computeVertexNormals();
+
+        }
+    }
+
     public UpdateChunkVisibility(ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
-        const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold * 0.8;
+        const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold * 0.7;
 
         if(isVisible){
-            let lodIndex = 0;
+            let lodIndex = this._LODInfo.length - 1;
 
-            for(let i = 0; this._LODInfo.length; i++){
-                if(distanceToClosestPoint > this._LODInfo[i].VisibleDistanceThreshold){
-                    this._LODs[lodIndex]._Chunk.visible = false; // Not the LOD in range so make sure its not being drawn
-                    lodIndex = i + 1;
+            for(let i = this._LODInfo.length - 1; i > 0; i--){
+                if(distanceToClosestPoint < this._LODInfo[i].VisibleDistanceThreshold){
+                    this._LODs[i]._Chunk.visible = false; // Not the LOD in range so make sure its not being drawn
+
+                    lodIndex = i;
                 }else{
                     break;
                 }
@@ -88,7 +143,11 @@ export default class Chunk{
 
                 if(currentLOD.HasMesh){
                     this._PrevicousLODIndex = lodIndex;
+
+                    const oldRef : THREE.Mesh = this._ChunkObject.clone();
+
                     this._ChunkObject = currentLOD._Chunk;
+                    this._ChunkObject.material = oldRef.material;
                 }
             }
         }

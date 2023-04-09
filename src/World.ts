@@ -5,7 +5,6 @@ import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 
 import Chunk from "./Chunk";
 import { LODInfo } from "./LOD"
-import { Resolver } from "dns";
 
 interface TerrianType {
     name: string,
@@ -57,7 +56,16 @@ export default class World{
             { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 8 },
             { Lod: 4, VisibleDistanceThreshold: 1800, Resolution: 4 },
         );
+
+        // this._LODInfo.push(
+        //     { Lod: 1, VisibleDistanceThreshold: 200, Resolution: 32 },
+        //     { Lod: 2, VisibleDistanceThreshold: 450, Resolution: 32 },
+        //     { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 32 },
+        //     { Lod: 4, VisibleDistanceThreshold: 1800, Resolution: 32 },
+        // );
         this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
+
+        console.log(this._LODInfo);
 
         this._ChunksVisableInViewDst = Math.round(this._MaxViewDst / this._chunkSize);
 
@@ -356,6 +364,8 @@ export default class World{
 
                     // const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
                     // this.ApplyHeightMap(chunk.ChunkObject, heightMap);
+
+                    chunk.HeightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
 
                     // const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
                     // box.setFromObject(chunk.ChunkObject);
