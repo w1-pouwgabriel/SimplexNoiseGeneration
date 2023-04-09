@@ -76,7 +76,7 @@ export default class Chunk{
         for(let i = 0; i < this._LODInfo.length; i++){
             let LODChunkRef : THREE.Mesh = this._LODs[i]._Chunk;
             
-            let magicNumber = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution
+            let devision = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution;
 
             //@ts-ignore
             let vertices = LODChunkRef.geometry.attributes.position["array"];
@@ -85,35 +85,45 @@ export default class Chunk{
             //@ts-ignore
             let height = LODChunkRef.geometry.parameters.heightSegments + 1;
             
-            for(let y = 0; y < height; y++){
-                for (let x = 0; x < width; x++) {
-
+            for(let y = 0; y < height * devision; y += devision){
+                for (let x = 0; x < width * devision; x += devision) {
                     //We need to add 3 since each vertex is
                     //(x, y, z)
                     let index = y * width + x;
-                    const vertexIndex = index * 3;
+                    const vertexIndex = index / devision * 3;
 
-                    let heightDataIndex : number = reverseNumberInRange(y, 0, width);
-                    heightDataIndex = heightDataIndex * width + x;
+                    let heightValue : number = 0;
 
-                    heightDataIndex *= magicNumber;
+                    Loop1:
+                        for(let j = 0; j < devision; j++){
+                        Loop2:
+                            for(let i = 0; i < devision; i++){
+                                let heightDataIndex : number = reverseNumberInRange(y + j, 0, width);
+                                heightDataIndex = heightDataIndex * width + x + i;
+                                heightValue += -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex];
 
-                    if(this._HeightMap[heightDataIndex] <= 0.0){
+                                if(this._HeightMap[heightDataIndex] <= 0){
+                                    heightValue = 0;
+                                    break Loop1;
+                                }
+                            }
+                        }
+                    
+                    heightValue /= devision * devision;
+
+                    //let heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 200.0;
+
+                    if(!isNaN(heightValue)) {
                         //@ts-ignore
+                        vertices[vertexIndex + 2] = heightValue * 200;
+                    }
+                    else if(heightValue <= 0){
                         vertices[vertexIndex + 2] = 0;
-                    }else{
+                    }
+                    else {
+                        vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
+                    }
 
-                        let heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 2000.0;
-
-                        if(!isNaN(heightValue)) {
-                            //@ts-ignore
-                            vertices[vertexIndex + 2] = heightValue;
-                        }
-                        else {
-                            vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
-                        }
-
-                    }            
                 }
             }
             

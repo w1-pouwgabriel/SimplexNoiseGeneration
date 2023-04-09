@@ -220,6 +220,7 @@ export default class World{
 
         //@ts-ignore
         chunkRef.material.map = texture;
+        chunkRef.material.side = THREE.DoubleSide;
         
         return heightData;
     }
