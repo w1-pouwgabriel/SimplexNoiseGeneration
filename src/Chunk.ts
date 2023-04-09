@@ -96,6 +96,8 @@ export default class Chunk{
                     let heightDataIndex : number = reverseNumberInRange(y, 0, width);
                     heightDataIndex = heightDataIndex * width + x;
 
+                    heightDataIndex *= magicNumber;
+
                     if(this._HeightMap[heightDataIndex] <= 0.0){
                         //@ts-ignore
                         vertices[vertexIndex + 2] = 0;
@@ -116,7 +118,7 @@ export default class Chunk{
             }
             
             //Recalculate the normals
-            //chunkRef.geometry.computeVertexNormals();
+            LODChunkRef.geometry.computeVertexNormals();
 
         }
     }
@@ -126,11 +128,11 @@ export default class Chunk{
         const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold * 0.7;
 
         if(isVisible){
-            let lodIndex = this._LODInfo.length - 1;
+            let lodIndex = 0;
 
-            for(let i = this._LODInfo.length - 1; i > 0; i--){
-                if(distanceToClosestPoint < this._LODInfo[i].VisibleDistanceThreshold){
-                    lodIndex = i;
+            for(let i = 0; i < this._LODInfo.length; i++){
+                if(distanceToClosestPoint > this._LODInfo[i].VisibleDistanceThreshold){
+                    lodIndex = i + 1;
                 }else{
                     break;
                 }

@@ -51,10 +51,10 @@ export default class World{
         this.Lighthing();
 
         this._LODInfo.push(
-            { Lod: 1, VisibleDistanceThreshold: 200, Resolution: 32 },
-            { Lod: 2, VisibleDistanceThreshold: 450, Resolution: 16 },
-            { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 8 },
-            { Lod: 4, VisibleDistanceThreshold: 1800, Resolution: 4 },
+            { Lod: 1, VisibleDistanceThreshold: 450, Resolution: 32 },
+            { Lod: 2, VisibleDistanceThreshold: 900, Resolution: 16 },
+            { Lod: 3, VisibleDistanceThreshold: 1800, Resolution: 8 },
+            { Lod: 4, VisibleDistanceThreshold: 2500, Resolution: 4 },
         );
 
         // this._LODInfo.push(
@@ -71,7 +71,7 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = 2048;               //At what scale do you want to generate noise
+        noiseParams.scale = 512;               //At what scale do you want to generate noise
         noiseParams.noiseType = "simplex";      //What type of noise
         noiseParams.persistence = 3;            //Controls the amplitude of octaves
         noiseParams.octaves = 4;                //The amount of noise maps used
@@ -119,50 +119,6 @@ export default class World{
             let noiseZoom = document.getElementById("noiseZoom") as HTMLInputElement;
             noiseZoom.value = "1";
         }
-    }
-
-    //Offset the vertices in the z
-    private ApplyHeightMap(chunkRef: THREE.Mesh, heightMap: Array<number>){
-        //@ts-ignore
-        let vertices = chunkRef.geometry.attributes.position["array"];
-
-        // +1 because this is what three js always does
-        //@ts-ignore
-        let width = chunkRef.geometry.parameters.widthSegments + 1;
-        //@ts-ignore
-        let height = chunkRef.geometry.parameters.heightSegments + 1;
-        
-        for(let y = 0; y < height; y++){
-            for (let x = 0; x < width; x++) {
-
-                //We need to add 3 since each vertex is
-                //(x, y, z)
-                let index = y * width + x;
-                let heightDataIndex : number = reverseNumberInRange(y, 0, height);
-                heightDataIndex = heightDataIndex * width + x;
-                const vertexIndex = index * 3;
-
-                if(heightMap[heightDataIndex] <= 0.0){
-                    //@ts-ignore
-                    vertices[vertexIndex + 2] = 0;
-                }else{
-
-                    let heightValue = -heightMap[heightDataIndex] * heightMap[heightDataIndex] * 2000.0;
-                    if(!isNaN(heightValue)) {
-                        //@ts-ignore
-                        vertices[vertexIndex + 2] = heightValue;
-                      }
-                      else {
-                        vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
-                      }
-
-                }
-                
-            }
-        }
-        
-        //Recalculate the normals
-        //chunkRef.geometry.computeVertexNormals();
     }
 
     private GenerateHeightMap(chunkRef: THREE.Mesh, mapCoordinate: THREE.Vector2) : Array<number>{
