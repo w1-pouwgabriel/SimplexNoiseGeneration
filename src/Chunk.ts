@@ -130,8 +130,6 @@ export default class Chunk{
 
             for(let i = this._LODInfo.length - 1; i > 0; i--){
                 if(distanceToClosestPoint < this._LODInfo[i].VisibleDistanceThreshold){
-                    this._LODs[i]._Chunk.visible = false; // Not the LOD in range so make sure its not being drawn
-
                     lodIndex = i;
                 }else{
                     break;
@@ -148,6 +146,12 @@ export default class Chunk{
 
                     this._ChunkObject = currentLOD._Chunk;
                     this._ChunkObject.material = oldRef.material;
+                }
+            }
+            
+            for(let i = 0; i < this._LODs.length; i++){
+                if(this._LODs[i].HasMesh){
+                    this._LODs[i]._Chunk.visible = false; // Not the LOD in range so make sure its not being drawn
                 }
             }
         }
