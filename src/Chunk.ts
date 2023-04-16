@@ -84,34 +84,30 @@ export default class Chunk{
             let width = LODChunkRef.geometry.parameters.widthSegments + 1;
             //@ts-ignore
             let height = LODChunkRef.geometry.parameters.heightSegments + 1;
+
+            //console.log(devision, width, height);
             
-            for(let y = 0; y < height * devision; y += devision){
-                for (let x = 0; x < width * devision; x += devision) {
+            for(let y = 0; y < height; y++){
+                for (let x = 0; x < width; x++) {
                     //We need to add 3 since each vertex is
                     //(x, y, z)
-                    let index = y * width + x;
-                    const vertexIndex = index / devision * 3;
+                    let index = y * width + x
+                    const vertexIndex = index * 3;
 
                     let heightValue : number = 0;
-
-                    Loop1:
-                        for(let j = 0; j < devision; j++){
-                        Loop2:
-                            for(let i = 0; i < devision; i++){
-                                let heightDataIndex : number = reverseNumberInRange(y + j, 0, width);
-                                heightDataIndex = heightDataIndex * width + x + i;
-                                heightValue += -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex];
-
-                                if(this._HeightMap[heightDataIndex] <= 0){
-                                    heightValue = 0;
-                                    break Loop1;
-                                }
-                            }
-                        }
                     
-                    heightValue /= devision * devision;
+                    let heightDataIndex : number = reverseNumberInRange(y, 0, width);
+                    heightDataIndex = (heightDataIndex * devision) * 33 + (x * devision);
+                    //heightDataIndex = heightDataIndex * width + x;
+                    //heightDataIndex += (devision * width + x); // Need to advance to the right height data
+                                                                    //  Some padding?? (LOD ratio?)
+                    //heightDataIndex *= devision;
 
-                    //let heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 200.0;
+                    heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 2.0;
+
+                    if(this._HeightMap[heightDataIndex] <= 0){
+                        heightValue = 0;
+                    }
 
                     if(!isNaN(heightValue)) {
                         //@ts-ignore
