@@ -57,12 +57,6 @@ export default class World{
             { Lod: 4, VisibleDistanceThreshold: 2500, Resolution: 4 },
         );
 
-        // this._LODInfo.push(
-        //     { Lod: 1, VisibleDistanceThreshold: 200, Resolution: 32 },
-        //     { Lod: 2, VisibleDistanceThreshold: 450, Resolution: 32 },
-        //     { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 32 },
-        //     { Lod: 4, VisibleDistanceThreshold: 1800, Resolution: 32 },
-        // );
         this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
 
         console.log(this._LODInfo);

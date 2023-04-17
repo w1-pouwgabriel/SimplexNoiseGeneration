@@ -76,7 +76,7 @@ export default class Chunk{
         for(let i = 0; i < this._LODInfo.length; i++){
             let LODChunkRef : THREE.Mesh = this._LODs[i]._Chunk;
             
-            let devision = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution;
+            let lodRatio = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution;
 
             //@ts-ignore
             let vertices = LODChunkRef.geometry.attributes.position["array"];
@@ -85,7 +85,7 @@ export default class Chunk{
             //@ts-ignore
             let height = LODChunkRef.geometry.parameters.heightSegments + 1;
 
-            //console.log(devision, width, height);
+            let highestLODWidth = this._LODInfo[0].Resolution + 1;
             
             for(let y = 0; y < height; y++){
                 for (let x = 0; x < width; x++) {
@@ -95,13 +95,15 @@ export default class Chunk{
                     const vertexIndex = index * 3;
 
                     let heightValue : number = 0;
-                    
-                    let heightDataIndex : number = reverseNumberInRange(y, 0, width);
-                    heightDataIndex = (heightDataIndex * devision) * 33 + (x * devision);
-                    //heightDataIndex = heightDataIndex * width + x;
-                    //heightDataIndex += (devision * width + x); // Need to advance to the right height data
-                                                                    //  Some padding?? (LOD ratio?)
-                    //heightDataIndex *= devision;
+
+                    let heightDataIndex : number = reverseNumberInRange(y, 0, height - 1);
+                    let tempStore = heightDataIndex;
+
+                    // if(y == 0){
+                    //     console.log(tempStore);
+                    // }
+
+                    heightDataIndex = (heightDataIndex * lodRatio) * highestLODWidth + (x * lodRatio);
 
                     heightValue = -this._HeightMap[heightDataIndex] * this._HeightMap[heightDataIndex] * 2.0;
 
@@ -113,13 +115,11 @@ export default class Chunk{
                         //@ts-ignore
                         vertices[vertexIndex + 2] = heightValue * 200;
                     }
-                    else if(heightValue <= 0){
+                    else{
+                        //@ts-ignore
                         vertices[vertexIndex + 2] = 0;
+                        console.log('NaN')
                     }
-                    else {
-                        vertices[vertexIndex + 2] = 0;   /// This does not work?  Any ideas?
-                    }
-
                 }
             }
             
