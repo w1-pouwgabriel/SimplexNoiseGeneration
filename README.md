@@ -9,8 +9,8 @@ to view changes open the index.html file in any browser supporting webGL2.0
 <h3>TODO: </h3>
 
 <ul>
-  <li>LOD</li>                - Done
+  <li><s>LOD</s></li>
   <li>Triplanar mapping</li>
-  <li>Generate normals</li>   - Done
-  <li>Debug UI</li>           - Done
+  <li><s>Generate normals</s></li>
+  <li><s>Debug UI</s></li>
 </ul>
