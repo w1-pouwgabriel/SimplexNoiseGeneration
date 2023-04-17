@@ -43,7 +43,7 @@ export default class Chunk{
         let phongMaterial = new THREE.MeshPhongMaterial({
             wireframe: isWireFrame,
             color: 0x808080,
-            side: THREE.DoubleSide,
+            side: THREE.BackSide,
         });
         
         this._ChunkObject = new THREE.Mesh(
@@ -97,11 +97,6 @@ export default class Chunk{
                     let heightValue : number = 0;
 
                     let heightDataIndex : number = reverseNumberInRange(y, 0, height - 1);
-                    let tempStore = heightDataIndex;
-
-                    // if(y == 0){
-                    //     console.log(tempStore);
-                    // }
 
                     heightDataIndex = (heightDataIndex * lodRatio) * highestLODWidth + (x * lodRatio);
 
@@ -118,7 +113,7 @@ export default class Chunk{
                     else{
                         //@ts-ignore
                         vertices[vertexIndex + 2] = 0;
-                        console.log('NaN')
+                        //console.log('NaN')
                     }
                 }
             }

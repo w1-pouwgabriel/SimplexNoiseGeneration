@@ -51,10 +51,10 @@ export default class World{
         this.Lighthing();
 
         this._LODInfo.push(
-            { Lod: 1, VisibleDistanceThreshold: 450, Resolution: 32 },
-            { Lod: 2, VisibleDistanceThreshold: 900, Resolution: 16 },
-            { Lod: 3, VisibleDistanceThreshold: 1800, Resolution: 8 },
-            { Lod: 4, VisibleDistanceThreshold: 2500, Resolution: 4 },
+            { Lod: 1, VisibleDistanceThreshold: 400, Resolution: 48 },
+            { Lod: 2, VisibleDistanceThreshold: 550, Resolution: 16 },
+            { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 4 },
+            { Lod: 4, VisibleDistanceThreshold: 4000, Resolution: 2 },
         );
 
         this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
@@ -148,9 +148,8 @@ export default class World{
                 let noiseCoordinate : THREE.Vector2 = new THREE.Vector2(x + mapCoordinate.x * width, y + mapCoordinate.y * height); // + y * mapCoordinate.y);
 
                 //console.log(noiseCoordinate);
-
                 let heightValue = this._noise.Get(noiseCoordinate.x , noiseCoordinate.y);
-                
+
                 if(heightValue <= WaterDeep.height){
                     colorData[ stride ] = WaterDeep.color[0];
                     colorData[ stride + 1 ] = WaterDeep.color[1];
