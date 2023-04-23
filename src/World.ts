@@ -127,14 +127,9 @@ export default class World{
                 let Mountain2: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Mountain2");
                 let Snow: TerrianType = this._terrianTypes.find(terrianType => terrianType.name == "Snow");
 
-                let noiseCoordinate : THREE.Vector2 = new THREE.Vector2(x + mapCoordinate.x * width, y + mapCoordinate.y * height); // + y * mapCoordinate.y);
+                let noiseCoordinate : THREE.Vector2 = new THREE.Vector2(x + mapCoordinate.x * (width - 1), y + mapCoordinate.y * (height - 1));
 
-                //console.log(noiseCoordinate);
                 let heightValue = this._noise.Get(noiseCoordinate.x , noiseCoordinate.y);
-
-                if(mapCoordinate == new THREE.Vector2(0, 0)){
-                    heightValue = 1.3;
-                }
 
                 if(heightValue <= WaterDeep.height){
                     colorData[ stride ] = WaterDeep.color[0];
