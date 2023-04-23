@@ -28,10 +28,8 @@ export default class World{
     private _LODInfo: Array<LODInfo> = new Array();
 
     //Render distance options
-    private _MaxViewDst: number = 2500;
+    private _MaxViewDst: number = 0;
     private _ChunksVisableInViewDst: number;
-
-    private _LoadingAndRenderingCube : THREE.Mesh = new THREE.Mesh();
 
     public get scene(){
         return this._scene;
@@ -54,7 +52,7 @@ export default class World{
             { Lod: 1, VisibleDistanceThreshold: 400, Resolution: 48 },
             { Lod: 2, VisibleDistanceThreshold: 550, Resolution: 16 },
             { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 4 },
-            { Lod: 4, VisibleDistanceThreshold: 4000, Resolution: 2 },
+            { Lod: 4, VisibleDistanceThreshold: 2500, Resolution: 2 },
         );
 
         this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
@@ -70,7 +68,6 @@ export default class World{
         noiseParams.persistence = 3;            //Controls the amplitude of octaves
         noiseParams.octaves = 4;                //The amount of noise maps used
         noiseParams.lacunarity = 5;             //Controls frequency of octaves
-        noiseParams.exponentiation = 1;         //???
         noiseParams.seed = Math.random();       // Math.random(); //Generate a random seed
 
         this._noise = new NoiseGenerator(noiseParams);
@@ -86,21 +83,6 @@ export default class World{
             { name: "Mountain2",    height: 0.9,    color: [150, 75, 0, 255]},
             { name: "Snow",         height: 1.0,    color: [255, 255, 255, 255]}
         );
-
-        let phongMaterial = new THREE.MeshBasicMaterial({
-            wireframe: false,
-            color: 0xFF00FF,
-            side: THREE.DoubleSide,
-        });
-
-        let resolution = 2; //256, 128, 64, 32
-        this._LoadingAndRenderingCube = new THREE.Mesh(
-            new THREE.BoxGeometry(this._chunkSize, this._chunkSize, resolution, resolution),
-            phongMaterial
-        );
-        this._LoadingAndRenderingCube.position.add(new THREE.Vector3(0,0,0));
-
-        //this.scene.add(this._LoadingAndRenderingCube);
 
         //SET DEBUG MENU VALUES
         {
@@ -149,6 +131,10 @@ export default class World{
 
                 //console.log(noiseCoordinate);
                 let heightValue = this._noise.Get(noiseCoordinate.x , noiseCoordinate.y);
+
+                if(mapCoordinate == new THREE.Vector2(0, 0)){
+                    heightValue = 1.3;
+                }
 
                 if(heightValue <= WaterDeep.height){
                     colorData[ stride ] = WaterDeep.color[0];
@@ -250,12 +236,11 @@ export default class World{
 
         //Noise generator
         let noiseParams: NoiseParams = new NoiseParams();
-        noiseParams.scale = Math.round(parseFloat(noiseScale.value) / parseFloat(noiseZoom.value));
-        noiseParams.noiseType = "simplex";                       
-        noiseParams.persistence = 3;                             
-        noiseParams.octaves = 4;                                 
-        noiseParams.lacunarity = 5;
-        noiseParams.exponentiation = 1;
+        noiseParams.scale = parseFloat(noiseScale.value);   //At what scale do you want to generate noise
+        noiseParams.noiseType = "simplex";                  //What type of noise
+        noiseParams.persistence = 3;                        //Controls the amplitude of octaves
+        noiseParams.octaves = 4;                            //The amount of noise maps used
+        noiseParams.lacunarity = 5;                         //Controls frequency of octaves
         if(randomSeed.checked){
             noiseParams.seed = Math.random();
             noiseSeed.value = noiseParams.seed;
@@ -298,10 +283,6 @@ export default class World{
         );
         playerChunkIndex.round();
 
-        let cubePos = this._controlRef.object.position.clone();
-        cubePos.z = -150;
-        this._LoadingAndRenderingCube.position.set(cubePos.x, cubePos.y, cubePos.z);
-
         for(let yOffset = -this._ChunksVisableInViewDst; yOffset <= this._ChunksVisableInViewDst; yOffset++){
             for(let xOffset = -this._ChunksVisableInViewDst; xOffset <= this._ChunksVisableInViewDst; xOffset++){
 
@@ -311,10 +292,6 @@ export default class World{
                 if(!this._terrian.has(viewedChunkCoordkString))
                 {
                     let chunk : Chunk = new Chunk(viewedChunkCoord, this._chunkSize, this._isWireFrame, this._LODInfo, this.scene);
-
-                    // const heightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
-                    // this.ApplyHeightMap(chunk.ChunkObject, heightMap);
-
                     chunk.HeightMap = this.GenerateHeightMap(chunk.ChunkObject, viewedChunkCoord);
 
                     // const box = new THREE.BoxHelper( chunk.ChunkObject, 0xff0000 );
@@ -322,7 +299,7 @@ export default class World{
                     // this._scene.add( box );
 
                     //this._scene.add( chunk.ChunkObject )
-                    this._terrian.set( viewedChunkCoordkString, chunk ); //Is dit een push of wat is dit?
+                    this._terrian.set(viewedChunkCoordkString, chunk);
                 }
                 else{
 

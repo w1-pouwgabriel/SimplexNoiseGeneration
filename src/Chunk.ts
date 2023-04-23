@@ -104,6 +104,8 @@ export default class Chunk{
 
                     if(this._HeightMap[heightDataIndex] <= 0){
                         heightValue = 0;
+                    }else{
+
                     }
 
                     if(!isNaN(heightValue)) {
@@ -120,7 +122,6 @@ export default class Chunk{
             
             //Recalculate the normals
             LODChunkRef.geometry.computeVertexNormals();
-
         }
     }
 

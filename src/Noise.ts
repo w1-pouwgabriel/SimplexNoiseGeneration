@@ -13,7 +13,6 @@ export class NoiseParams{
     public persistence: number = 10;        //Controls the amplitude of octaves
     public octaves: number = 0.5;           //The amount of noise maps used
     public lacunarity: number = 2;          //Controls frequency of octaves
-    public exponentiation: number = 4;      //???
     public height: number = 64;             //Max height of the heightmap
     public seed: any = Math.random();       //Generate a random seed
 }
@@ -60,8 +59,7 @@ export default class NoiseGenerator {
         let frequency = 1.0;
         let normalization = 0;
         let total = 0;
-        const G = 2.0 ** (-this._params.persistence);
-
+        const G = 2.0 ** (-this._params.persistence); //Math.pow is the same operation
         for (let o = 0; o < this._params.octaves; o++) {
             //Sample coordinates
             const xs = x / this._params.scale * frequency;
@@ -76,7 +74,7 @@ export default class NoiseGenerator {
         }
         total /= normalization;
         
-        return Math.pow(total, this._params.exponentiation);
+        return total;
       }
 }
 
