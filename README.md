@@ -11,7 +11,7 @@ to view changes open the index.html file in any browser supporting webGL2.0
 <ul>
   <li><s>LOD</s></li>
   <li>Triplanar mapping</li>
-  <li>Fix seams between chunks</li>
+  <li><s>Fix seams between chunks</s></li>
   <li><s>Generate normals</s></li>
   <li><s>Debug UI</s></li>
 </ul>
