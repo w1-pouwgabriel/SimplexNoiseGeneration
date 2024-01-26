@@ -42,7 +42,9 @@ export default class Game {
             this._World.Reset();
         });
 
-        this._World.LoadAndUnload();
+        let a : THREE.Vector3 = new THREE.Vector3(1,0,0);
+        let b : THREE.Vector3 = new THREE.Vector3(0,1,0);
+        console.log(a.cross(b));
     }
 
     public async Load(){
@@ -54,6 +56,8 @@ export default class Game {
         requestAnimationFrame(this.Render.bind(this));
 
         let deltaTime: any = this._timer.getDelta();
+
+        //let worker = new Worker();
 
         this._Controls.update(deltaTime);
         this._World.updateEntities(deltaTime);

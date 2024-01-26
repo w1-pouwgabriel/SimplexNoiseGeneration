@@ -1,7 +1,8 @@
 {
     "scripts": 
     {
-        "dev": "esbuild src/index.ts --bundle --watch --minify --sourcemap --outdir=dist/js --target=es2020"
+        "dev": "esbuild src/index.ts --bundle --watch --sourcemap --outdir=dist/js --target=es2020",
+        "build": "esbuild src/index.ts --bundle --watch --minify --sourcemap --outdir=dist/js --target=es2020"
     },
     "devDependencies":
     {

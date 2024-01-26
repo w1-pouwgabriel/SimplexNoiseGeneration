@@ -5,6 +5,8 @@ import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js'
 
 import Chunk from "./Chunk";
 import { LODInfo } from "./LOD"
+import { start } from "repl";
+import { worker } from "cluster";
 
 interface TerrianType {
     name: string,
@@ -49,10 +51,11 @@ export default class World{
         this.Lighthing();
 
         this._LODInfo.push(
-            { Lod: 1, VisibleDistanceThreshold: 400, Resolution: 48 },
-            { Lod: 2, VisibleDistanceThreshold: 550, Resolution: 16 },
-            { Lod: 3, VisibleDistanceThreshold: 900, Resolution: 4 },
-            { Lod: 4, VisibleDistanceThreshold: 2500, Resolution: 2 },
+            { Lod: 1, VisibleDistanceThreshold: 300, Resolution: 48 },
+            { Lod: 2, VisibleDistanceThreshold: 500, Resolution: 24 },
+            { Lod: 3, VisibleDistanceThreshold: 1000, Resolution: 12 },
+            { Lod: 4, VisibleDistanceThreshold: 2000, Resolution: 8 },
+            { Lod: 5, VisibleDistanceThreshold: 3600, Resolution: 4 }
         );
 
         this._MaxViewDst = this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold;
@@ -197,6 +200,7 @@ export default class World{
         //chunkRef.material.side = THREE.DoubleSide;
         
         return heightData;
+        
     }
 
     private Lighthing(){
@@ -271,7 +275,7 @@ export default class World{
         }
     }
 
-    public LoadAndUnload(){
+    private LoadAndUnload(){
         let playerChunkIndex: THREE.Vector2 = new THREE.Vector2(
             this._controlRef.object.position.x / this._chunkSize,
             this._controlRef.object.position.y / this._chunkSize
@@ -305,6 +309,8 @@ export default class World{
     }
 
     public updateEntities(deltaTime: number){
+        //let worker = new Worker(this.LoadAndUnload);
+        
         this.LoadAndUnload();
     }
 }

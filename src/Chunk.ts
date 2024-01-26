@@ -45,6 +45,7 @@ export default class Chunk{
             color: 0x808080,
             side: THREE.BackSide,
         });
+        phongMaterial.flatShading = true;
         
         this._ChunkObject = new THREE.Mesh(
             new THREE.PlaneGeometry(size, size, detailLevels[0].Resolution, detailLevels[0].Resolution),
@@ -79,7 +80,7 @@ export default class Chunk{
             let lodRatio = this._LODInfo[0].Resolution / this._LODInfo[i].Resolution;
 
             //@ts-ignore
-            let vertices = LODChunkRef.geometry.attributes.position["array"];
+            let vertices = LODChunkRef.geometry.getAttribute("position").array;
             //@ts-ignore
             let width = LODChunkRef.geometry.parameters.widthSegments + 1;
             //@ts-ignore
@@ -104,8 +105,6 @@ export default class Chunk{
 
                     if(this._HeightMap[heightDataIndex] <= 0){
                         heightValue = 0;
-                    }else{
-
                     }
 
                     if(!isNaN(heightValue)) {
@@ -122,7 +121,52 @@ export default class Chunk{
             
             //Recalculate the normals
             LODChunkRef.geometry.computeVertexNormals();
+            //this.FlatShading(LODChunkRef);
+            //LODChunkRef.
+
+            //console.log(LODChunkRef);
         }
+    }
+
+    private FlatShading(chunkRef: THREE.Mesh){
+        let vertices = chunkRef.geometry.getAttribute("position");
+        let normals = chunkRef.geometry.getAttribute("normal");
+        let indices = chunkRef.geometry.getIndex();
+
+        let indexVertices : Array<THREE.Vector3> = new Array;
+        let computeNormals : Array<THREE.Vector3> = new Array(vertices.count * vertices.itemSize);
+        computeNormals.fill(new THREE.Vector3(0,0,0));
+
+
+        
+        //Index all the vertices so they allign with the index numbers
+        for(let i = 0; i < (vertices.count * vertices.itemSize); i += 3 ){
+            indexVertices.push(new THREE.Vector3(vertices.array[i], vertices.array[i+1], vertices.array[i+2]))
+        }
+
+        for(let i = 0; i < indices.count; i += 3){
+            let vertexA: THREE.Vector3 = indexVertices[indices.array[i]];
+            let vertexB: THREE.Vector3 = indexVertices[indices.array[i + 1]];
+            let vertexC: THREE.Vector3 = indexVertices[indices.array[i + 2]];
+
+            let vertexAB: THREE.Vector3 = vertexB.sub(vertexA);
+            let vertexAC: THREE.Vector3 = vertexC.sub(vertexA);
+
+            let faceNormal: THREE.Vector3 = this.Cross(vertexAB, vertexAC);
+            faceNormal = faceNormal.normalize();
+
+            
+        }
+
+        //computeNormals = normals.array;
+    }
+
+    private Cross(a: THREE.Vector3, b: THREE.Vector3) : THREE.Vector3 {
+        let result : THREE.Vector3 = new THREE.Vector3();
+        result.x = a.y*b.z - a.z*b.y;
+        result.y = a.z*b.x - a.x*b.z;
+        result.z = a.x*b.y - a.y*b.x;
+        return result;
     }
 
     public UpdateChunkVisibility(ObjectPosition: THREE.Vector3){
