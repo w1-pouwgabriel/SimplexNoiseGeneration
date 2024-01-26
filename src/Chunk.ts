@@ -128,47 +128,6 @@ export default class Chunk{
         }
     }
 
-    private FlatShading(chunkRef: THREE.Mesh){
-        let vertices = chunkRef.geometry.getAttribute("position");
-        let normals = chunkRef.geometry.getAttribute("normal");
-        let indices = chunkRef.geometry.getIndex();
-
-        let indexVertices : Array<THREE.Vector3> = new Array;
-        let computeNormals : Array<THREE.Vector3> = new Array(vertices.count * vertices.itemSize);
-        computeNormals.fill(new THREE.Vector3(0,0,0));
-
-
-        
-        //Index all the vertices so they allign with the index numbers
-        for(let i = 0; i < (vertices.count * vertices.itemSize); i += 3 ){
-            indexVertices.push(new THREE.Vector3(vertices.array[i], vertices.array[i+1], vertices.array[i+2]))
-        }
-
-        for(let i = 0; i < indices.count; i += 3){
-            let vertexA: THREE.Vector3 = indexVertices[indices.array[i]];
-            let vertexB: THREE.Vector3 = indexVertices[indices.array[i + 1]];
-            let vertexC: THREE.Vector3 = indexVertices[indices.array[i + 2]];
-
-            let vertexAB: THREE.Vector3 = vertexB.sub(vertexA);
-            let vertexAC: THREE.Vector3 = vertexC.sub(vertexA);
-
-            let faceNormal: THREE.Vector3 = this.Cross(vertexAB, vertexAC);
-            faceNormal = faceNormal.normalize();
-
-            
-        }
-
-        //computeNormals = normals.array;
-    }
-
-    private Cross(a: THREE.Vector3, b: THREE.Vector3) : THREE.Vector3 {
-        let result : THREE.Vector3 = new THREE.Vector3();
-        result.x = a.y*b.z - a.z*b.y;
-        result.y = a.z*b.x - a.x*b.z;
-        result.z = a.x*b.y - a.y*b.x;
-        return result;
-    }
-
     public UpdateChunkVisibility(ObjectPosition: THREE.Vector3){
         let distanceToClosestPoint = this._Bounds.distanceToPoint(ObjectPosition);
         const isVisible = distanceToClosestPoint <= this._LODInfo[this._LODInfo.length - 1].VisibleDistanceThreshold * 0.7;
